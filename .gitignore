@@ -1,0 +1,19 @@
+*.orig
+*.pyc
+*.swp
+.env
+
+/.cargo_home/
+/.idea/
+/.vs/
+/.vscode/
+!/.vscode/settings.json
+
+# MacOS generated files
+.DS_Store
+.DS_Store?
+
+/ext/websocket/autobahn/reports
+
+# For download and handling
+/data
