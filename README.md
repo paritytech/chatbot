@@ -23,3 +23,15 @@ OPENAI_API_KEY=<api-key>
 Run `deno run --allow-read=data --allow-end --allow-write=data/ --allow-net src/embed.ts`
 
 Be sure that the data was downloaded on the previous step.
+
+## Run chatbot
+
+Create an env file:
+
+```env
+OPENAI_API_KEY=<api-key>
+```
+
+Run `deno run --allow-read=data --allow-env src/chatbot.ts`
+
+Be sure that the data was generated in the previous step.
