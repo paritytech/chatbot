@@ -58,9 +58,9 @@ export const fetchDocs = async () => {
             path: file.path as string,
         });
         console.log(
-            `Downloading ${file.path} 🗂️ - `,
+            `Downloading ${file.path} -`,
             cleanedFiles.length - i,
-            "files remaining.",
+            "files remaining 📂",
         );
         // @ts-ignore: download_url exists but for some reason it is telling it does not
         const { download_url } = data;

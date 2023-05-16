@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { readFile } from "fs/promises";
 import { Configuration, OpenAIApi } from "openai";
+import prompts from "prompts";
 import embeddingStoreJSON from "../data/embeddings/polkadot-test.json";
 
 dotenv.config()
@@ -16,11 +17,11 @@ const openai = new OpenAIApi(new Configuration({ apiKey }));
 // Config Variables
 let embeddingStore:{ [key: string]: { embedding: number[], created: number } } = {};
 
-const maxTokens = 200; // Just to save my money :')
+const maxTokens = 300; // Just to save my money :')
 let embeddedQuestion;
 
 const createPrompt = (question: string, paragraph: string[]) => {
-  console.log("paragraph", paragraph.join("\n\n"));
+  // console.debug("paragraph", paragraph.join("\n\n"));
 
   return (
     "Answer the following question, also use your own knowledge when necessary :\n\n" +
@@ -148,4 +149,14 @@ const generateCompletion = async (prompt: string) => {
   }
 };
 
-generateCompletion("Who are you?");
+
+
+(async () => {
+  const question = await prompts({
+    type:"text",
+    name:"query",
+    message: "What is your question?"
+  });
+
+  await generateCompletion(question.query);
+})();

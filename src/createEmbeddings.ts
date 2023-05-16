@@ -5,7 +5,6 @@ import { readFile, writeFile, readdir, mkdir } from "fs/promises";
 type FileAndContent = [string, string];
 
 
-
 let destPath = "./data/embeddings/polkadot-test.json";
 
 const fetchFiles = async (): Promise<FileAndContent[]> => {
@@ -36,7 +35,7 @@ const handleMarkdownContent = async (files: FileAndContent[]): Promise<[string, 
         const parsedMarkdown = await textSplitter.createDocuments([content]);
         parsedFiles[i] = [fileName, parsedMarkdown.map(pm => pm.pageContent)];
         const parsedDoc = JSON.stringify(parsedMarkdown, null, 2);
-        await writeFile(`./data/parsed/${fileName}.json`, parsedDoc);
+        // await writeFile(`./data/parsed/${fileName}.json`, parsedDoc);
     }
 
     return parsedFiles;

@@ -25,10 +25,12 @@
     "dotenv": "^16.0.3",
     "langchain": "^0.0.75",
     "ml-distance": "^4.0.0",
-    "openai": "^3.2.1"
+    "openai": "^3.2.1",
+    "prompts": "^2.4.2"
   },
   "devDependencies": {
     "@types/node": "^20.1.5",
+    "@types/prompts": "^2.4.4",
     "ts-node": "^10.9.1"
   }
 }
