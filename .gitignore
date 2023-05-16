@@ -17,3 +17,5 @@
 
 # For download and handling
 /data
+
+node_modules/

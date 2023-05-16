@@ -1,0 +1,34 @@
+{
+  "name": "chatbot",
+  "version": "1.0.0",
+  "description": "Polkadot chatbot",
+  "main": "dist/index.js",
+  "scripts": {
+    "fetch-docs": "ts-node src/fetch.ts",
+    "embeddings": "ts-node src/createEmbeddings.ts",
+    "ask": "ts-node src/completetion.ts",
+    "setup": "ts-node src/setup.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paritytech/chatbot.git"
+  },
+  "author": "Javier Bullrich <javier.bullrich@parity.io>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/paritytech/chatbot/issues"
+  },
+  "homepage": "https://github.com/paritytech/chatbot#readme",
+  "dependencies": {
+    "@octokit/rest": "^19.0.8",
+    "axios": "^1.4.0",
+    "dotenv": "^16.0.3",
+    "langchain": "^0.0.75",
+    "ml-distance": "^4.0.0",
+    "openai": "^3.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.1.5",
+    "ts-node": "^10.9.1"
+  }
+}

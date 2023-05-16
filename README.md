@@ -5,59 +5,28 @@ This is an interactive AI-based tool designed to answer questions about Substrat
 [![Substrate](https://img.shields.io/badge/Substrate-100000?style=flat&logo=polkadot&logoColor=E6007A&labelColor=000000&color=21CC85)](https://github.com/paritytech/substrate)
 [![License: Apache](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-## Table of Contents
-
-* [Downloading the Files](#how-to-download-files)
-* [Generating Embeddings](#how-to-generate-the-embeddings)
-* [Running the Chatbot](#run-the-chatbot)
-
-## How to download files
+## How to setup the project
 
 To download the necessary files for the chatbot, you need to create an environment variable file, `.env`, with the following values:
 
 ```env
-GITHUB_TOKEN=<token>
 REPO=<repo-name>
 ORG=paritytech
+GITHUB_TOKEN=<token-with-repo-access>
+OPENAI_API_KEY=<api-key>
 ```
 
-After creating this file, run the following command:
+Run `npm run setup` on your terminal. This will download all the neccesary files and generate the embeddings.
 
-```bash
-deno run --allow-read --allow-env --allow-write=data/ --allow-net src/fetch.ts
-```
+## Run chatbot
 
-This command will fetch the necessary files from the specified repositories and the docs.
-
-## How to generate the embeddings
-
-The chatbot relies on embeddings to understand and generate responses. To create these embeddings, you need to set up another environment variable in the `.env` file:
+Create an env file:
 
 ```env
 OPENAI_API_KEY=<api-key>
 ```
 
-Then, run the following command:
-
-```bash
-deno run --allow-read=data --allow-end --allow-write=data/ --allow-net src/embed.ts
-```
-
-Ensure that the data was downloaded in the previous step, as the embedding generation relies on this data.
-
-## Run the chatbot
-
-To start the chatbot, you need to set up the `OPENAI_API_KEY` variable value in your `.env` file, unless you did so in the previous step:
-
-```env
-OPENAI_API_KEY=<api-key>
-```
-
-Then, run the following command:
-
-```bash
-deno run --allow-read=data --allow-env src/chatbot.ts`
-```
+Run `npm run ask`
 
 Before running this command, please make sure that the embeddings were generated in the previous step.
 
