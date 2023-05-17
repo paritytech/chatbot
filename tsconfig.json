@@ -12,6 +12,10 @@
     "strict": true,                                      /* Enable all strict type-checking options. */
     "lib": ["ES2021"],
  
-    "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
-  }
+    "skipLibCheck": true,                                 /* Skip type checking all .d.ts files. */
+    "rootDir": "./",
+    "outDir": "./dist",
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts", "client"],  
 }

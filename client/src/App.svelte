@@ -16,7 +16,7 @@
 
   async function fetchQuestion(question: string): Promise<string> {
     const request = await axios.post<string>(
-      "/question",
+      "/query",
       {
         question,
       },
