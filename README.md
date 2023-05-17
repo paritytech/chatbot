@@ -7,7 +7,13 @@ This is an interactive AI-based tool designed to answer questions about Substrat
 
 ## How to setup the project
 
-To download the necessary files for the chatbot, you need to create an environment variable file, `.env`, with the following values:
+First, make sure you have `ts-node` installed. You can for simplicity install it globally with `npm i -g ts-node`.
+
+Then, run `npm install` from the root of the project to download all of the project dependencies.
+
+Lastly, you need to ensure that you have the necessary environment variables set up. The project comes with a sample environment variable file, `example.env`, which you can use as a template. You can copy it to `.env` and fill in the necessary values.
+
+The envionment file needs to have the following values:
 
 ```env
 REPO=<repo-name>
@@ -16,7 +22,25 @@ GITHUB_TOKEN=<token-with-repo-access>
 OPENAI_API_KEY=<api-key>
 ```
 
-Run `npm run setup` on your terminal. This will download all the neccesary files and generate the embeddings.
+For example, if you are creating an interactive chatbot for Substrate, you would set the following values:
+
+```env
+REPO=substrate
+ORG=paritytech
+```
+
+You also need to include your OpenAI API key. You can get one by signing up for an account at [OpenAI](https://openai.com/). You also require a GitHub token with repo access. You can create one by following the instructions [here](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token). Add them to your `.env` file with the following keys:
+
+```env
+GITHUB_TOKEN=
+OPENAI_API_KEY=
+```
+
+Once that is all completed, you can run the following command to download all the necessary files and generate the embeddings:
+
+```bash
+npm run setup
+```
 
 ## Run chatbot
 
@@ -29,6 +53,8 @@ OPENAI_API_KEY=<api-key>
 Run `npm run ask`
 
 Before running this command, please make sure that the embeddings were generated in the previous step.
+
+The chatbot will ask you to enter a question. Once you enter a question, it will query the OpenAI API and return the most relevant answer. You can run this command again to ask another question.
 
 ## License
 
