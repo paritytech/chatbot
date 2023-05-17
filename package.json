@@ -7,7 +7,9 @@
     "fetch-docs": "ts-node src/fetch.ts",
     "embeddings": "ts-node src/createEmbeddings.ts",
     "ask": "ts-node src/completetion.ts",
-    "setup": "ts-node src/setup.ts"
+    "setup": "ts-node src/setup.ts",
+    "postinstall": "npm ci --prefix client",
+    "prebuild": "npm run build --prefix client"
   },
   "repository": {
     "type": "git",
