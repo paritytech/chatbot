@@ -5,7 +5,7 @@
   "main": "dist/src/server.js",
   "scripts": {
     "start": "node dist/index.js",
-    "build": "ncc build src/server.ts",
+    "build": "ncc build src/server.ts --license LICENSE",
     "fetch-docs": "ts-node src/fetch.ts",
     "embeddings": "ts-node src/createEmbeddings.ts",
     "ask": "ts-node src/cli.ts",
