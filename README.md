@@ -7,13 +7,11 @@ This is an interactive AI-based tool designed to answer questions about Substrat
 
 ## How to setup the project
 
-First, make sure you have `ts-node` installed. You can for simplicity install it globally with `npm i -g ts-node`.
+First run `npm install` from the root of the project to download all of the project dependencies.
 
-Then, run `npm install` from the root of the project to download all of the project dependencies.
+After this, you need to ensure that you have the necessary environment variables set up. The project comes with a sample environment variable file, `example.env`, which you can use as a template. You can copy it to `.env` and fill in the necessary values.
 
-Lastly, you need to ensure that you have the necessary environment variables set up. The project comes with a sample environment variable file, `example.env`, which you can use as a template. You can copy it to `.env` and fill in the necessary values.
-
-The envionment file needs to have the following values:
+The environment file needs to have the following values:
 
 ```env
 REPO=<repo-name>
@@ -29,7 +27,7 @@ REPO=substrate
 ORG=paritytech
 ```
 
-You also need to include your OpenAI API key. You can get one by signing up for an account at [OpenAI](https://openai.com/). You also require a GitHub token with repo access. You can create one by following the instructions [here](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token). Add them to your `.env` file with the following keys:
+You also need to include your OpenAI API key. You can get one by signing up for an account at [OpenAI](https://openai.com/). You also require a **GitHub token** with repo access. You can create one by following the instructions [here](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token). Add them to your `.env` file with the following keys:
 
 ```env
 GITHUB_TOKEN=
@@ -42,7 +40,21 @@ Once that is all completed, you can run the following command to download all th
 npm run setup
 ```
 
-## Run chatbot
+## Run server
+
+You can create the web server to ask questions. For this you need to build your project.
+
+In order, run in the root directory the following commands:
+```bash
+npm run build
+npm start
+```
+
+This will build your project and make it available at http://localhost:3000
+
+## Run CLI
+
+If you don't require a web server and just want to interact from your terminal, you can use the available Command Line Interface.
 
 Create an env file:
 
