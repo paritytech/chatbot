@@ -21,27 +21,7 @@ export const fetchDocs = async () => {
         `${repo.owner}/${repo.repo}`,
     );
 
-    // type guard function for AxiosError
-    // needed for the catch in the try/catch block below 
-    function isAxiosError(error: unknown): error is AxiosError {
-        return (error as AxiosError).isAxiosError !== undefined;
-    }
-      
-    // Check if the repo has a main branch
-    // If not, default tot he master branch
-    let treeSha = "main";
-    try {
-      await octokit.rest.git.getRef({
-        ...repo,
-        ref: "heads/main",
-      });
-    } catch (error) {
-        if (isAxiosError(error) && error.response?.status === 404) {
-            treeSha = "master";
-        } else {
-            throw error as Error;
-        }
-    }
+    const { data: { default_branch } } = await octokit.rest.repos.get({ ...repo });
 
     const { data } = await octokit.rest.git.getTree({
         ...repo,
