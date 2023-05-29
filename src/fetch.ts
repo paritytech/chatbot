@@ -1,5 +1,5 @@
 import { Octokit } from "@octokit/rest";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { mkdir, writeFile } from "fs/promises";
 
 
@@ -21,9 +21,11 @@ export const fetchDocs = async () => {
         `${repo.owner}/${repo.repo}`,
     );
 
+    const { data: { default_branch } } = await octokit.rest.repos.get({ ...repo });
+
     const { data } = await octokit.rest.git.getTree({
         ...repo,
-        tree_sha: "master",
+        tree_sha: treeSha,
         recursive: "true",
     });
 
