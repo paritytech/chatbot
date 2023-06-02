@@ -21,7 +21,7 @@ export const fetchDocs = async () => {
 
     const { data } = await octokit.rest.git.getTree({
         ...repo,
-        tree_sha: treeSha,
+        tree_sha: default_branch,
         recursive: "true",
     });
 
