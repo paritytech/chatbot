@@ -42,15 +42,15 @@ npm run setup
 
 ## Run server
 
-You can create the web server to ask questions. For this you need to build your project.
+You can run the web server to ask questions. For this you need to run the following command.
 
 In order, run in the root directory the following commands:
+
 ```bash
-npm run build
-npm start
+npm run dev
 ```
 
-This will build your project and make it available at http://localhost:3000
+This will build your project and make it available at http://localhost:5173
 
 ## Run CLI
 

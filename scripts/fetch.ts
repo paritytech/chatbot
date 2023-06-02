@@ -1,10 +1,6 @@
 import { Octokit } from "@octokit/rest";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { mkdir, writeFile } from "fs/promises";
-
-
-
-
 
 export const fetchDocs = async () => {
     const repo = {
