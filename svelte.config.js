@@ -16,7 +16,7 @@ const config = {
 
 	kit: {
 		// adapter set up automatically based on the platform
-		adapter: process.env.VERCEL ? vercelAdapter({ runtime: 'edge' }) : nodeAdapter()
+		adapter: process.env.VERCEL ? vercelAdapter() : nodeAdapter()
 	}
 };
 
