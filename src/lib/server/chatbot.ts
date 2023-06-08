@@ -1,6 +1,6 @@
 import { OPENAI_API_KEY } from '$env/static/private';
 import { readFile } from 'fs/promises';
-import { Configuration, OpenAIApi } from 'openai';
+import { Configuration, OpenAIApi, type CreateChatCompletionRequest } from 'openai';
 import embeddingStoreJSON from '../../../data/embeddings/polkadot-test.json';
 
 if (!OPENAI_API_KEY) {
@@ -83,49 +83,56 @@ const findClosestParagraphs = (questionEmbedding: number[], count: number) => {
 	return items.slice(0, count).map((item) => item.paragraph);
 };
 
+export const getCompletationData = async (prompt: string): Promise<CreateChatCompletionRequest> => {
+	// Retrieve embedding store and parse it
+	embeddingStore = embeddingStoreJSON as {
+		[key: string]: { embedding: number[]; created: number };
+	};
+
+	// Embed the prompt using embedding model
+
+	let embeddedQuestionResponse = await openai.createEmbedding({
+		input: prompt,
+		model: 'text-embedding-ada-002'
+	});
+
+	// Some error handling
+	if (embeddedQuestionResponse.data.data.length) {
+		embeddedQuestion = embeddedQuestionResponse.data.data[0].embedding;
+	} else {
+		throw Error('Question not embedded properly');
+	}
+
+	const systemContent = await readFile('./data/chatbot-configuration.txt', 'utf-8');
+
+	// Find the closest count(int) paragraphs
+	let closestParagraphs = findClosestParagraphs(embeddedQuestion, 5); // Tweak this value for selecting paragraphs number
+
+	return {
+		model: 'gpt-3.5-turbo',
+		messages: [
+			{
+				role: 'system',
+				content: systemContent
+			},
+			{
+				role: 'user',
+				content: createPrompt(prompt, closestParagraphs)
+			}
+		],
+		// max_tokens: maxTokens,
+		temperature: 0, // Tweak for more random answers,
+		stream: true
+	};
+};
+
 export const generateCompletion = async (prompt: string) => {
 	console.log('Called completion function with prompt:', prompt);
 
 	try {
-		// Retrieve embedding store and parse it
-		embeddingStore = embeddingStoreJSON as {
-			[key: string]: { embedding: number[]; created: number };
-		};
+		const completionRequest = await getCompletationData(prompt);
 
-		// Embed the prompt using embedding model
-
-		let embeddedQuestionResponse = await openai.createEmbedding({
-			input: prompt,
-			model: 'text-embedding-ada-002'
-		});
-
-		// Some error handling
-		if (embeddedQuestionResponse.data.data.length) {
-			embeddedQuestion = embeddedQuestionResponse.data.data[0].embedding;
-		} else {
-			throw Error('Question not embedded properly');
-		}
-
-		const systemContent = await readFile('./data/chatbot-configuration.txt', 'utf-8');
-
-		// Find the closest count(int) paragraphs
-		let closestParagraphs = findClosestParagraphs(embeddedQuestion, 5); // Tweak this value for selecting paragraphs number
-
-		let completionData = await openai.createChatCompletion({
-			model: 'gpt-3.5-turbo',
-			messages: [
-				{
-					role: 'system',
-					content: systemContent
-				},
-				{
-					role: 'user',
-					content: createPrompt(prompt, closestParagraphs)
-				}
-			],
-			// max_tokens: maxTokens,
-			temperature: 0 // Tweak for more random answers
-		});
+		const completionData = await openai.createChatCompletion(completionRequest);
 
 		const msg = completionData.data.choices[0].message;
 

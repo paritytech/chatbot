@@ -2,17 +2,22 @@
 	import axios from 'axios';
 	import Chat from '$lib/components/Chat.svelte';
 	import { tick } from 'svelte';
+	import { askQuestion as askStream } from '$lib/util/handleQueryStream';
 
 	import { highlightAll } from 'prismjs';
+	import ChatBubble from '$lib/components/ChatBubble.svelte';
 
 	let qAndA: { question: boolean; text: string }[] = [];
-	let question: string;
+	let question: string = 'What is your name?';
 	let request: Promise<string>;
 	let input: HTMLElement;
 	let chat: HTMLElement;
 	let loading: boolean;
 
-	$: loading = !!request;
+	// answer streamed on real time before being parsed by the markdown parser
+	let streamAnswer: string = '';
+
+	// $: loading = !!request;
 
 	async function fetchQuestion(question: string): Promise<string> {
 		const request = await axios.post<string>(
@@ -34,23 +39,30 @@
 	};
 
 	async function askQuestion() {
-		request = fetchQuestion(question);
+		loading = true;
 		qAndA.push({ question: true, text: question });
 		qAndA = qAndA;
-		question = '';
-		const data = await request;
-		console.log(data);
+		const queryAnswer = await askStream(question, (word) => {
+			streamAnswer += word;
+			// qAndA[currentAnswer].text += word;
+			// qAndA = [...qAndA];
 
-		qAndA.push({ question: false, text: data });
+			console.log('answer to', question, qAndA);
+		});
+		streamAnswer = '';
+		console.log('Complete answer is:', queryAnswer);
+		qAndA.push({ question: false, text: queryAnswer });
 		qAndA = qAndA;
-		request = null;
+		question = '';
+
 		await tick();
 		scrollToBottom(chat);
-		document.querySelectorAll('pre code').forEach((el) => {
-			console.log('highlighting', el);
-			// @ts-ignore
-			hljs.highlightElement(el);
-		});
+		// document.querySelectorAll('pre code').forEach((el) => {
+		// 	console.log('highlighting', el);
+		// 	// @ts-ignore
+		// 	hljs.highlightElement(el);
+		// });
+		loading = false;
 	}
 </script>
 
@@ -71,12 +83,17 @@
 					</li>
 				</ul>
 			</div>
-			<div class="card flex-shrink-0 w-full max-w-lg shadow-2xl bg-base-100 grow">
+			<div class="chat-column">
 				<div class="card-body chat-container">
 					<div class="overflow-y-auto" bind:this={chat}>
 						{#each qAndA as text}
 							<Chat text={text.text} isQuestion={text.question} />
 						{/each}
+						{#if streamAnswer}
+							<ChatBubble isQuestion={false}>
+								{streamAnswer}
+							</ChatBubble>
+						{/if}
 
 						{#if request}
 							{#await request}
@@ -109,6 +126,7 @@
 								placeholder="Type your question"
 								class="input input-bordered w-full max-w-xs col-span-2"
 								bind:this={input}
+								disabled={loading}
 							/>
 							<button class="btn" on:click={askQuestion} disabled={loading} class:loading
 								>Ask</button
@@ -121,8 +139,13 @@
 	</div>
 </main>
 
-<style>
+<style lang="postcss">
 	.chat-container {
 		max-height: 80vh;
+	}
+
+	.chat-column {
+		@apply card flex-shrink-0 w-full max-w-lg shadow-2xl bg-base-100 grow;
+		min-width: 30vw;
 	}
 </style>
