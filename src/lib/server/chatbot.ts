@@ -1,7 +1,7 @@
 import { OPENAI_API_KEY } from '$env/static/private';
-import { readFile } from 'fs/promises';
 import { Configuration, OpenAIApi, type CreateChatCompletionRequest } from 'openai';
 import embeddingStoreJSON from '../../../data/embeddings/polkadot-test.json';
+import systemContent from "../../../data/chatbot-configuration.txt?raw";
 
 if (!OPENAI_API_KEY) {
 	throw new Error('No api key');
@@ -102,8 +102,6 @@ export const getCompletationData = async (prompt: string): Promise<CreateChatCom
 	} else {
 		throw Error('Question not embedded properly');
 	}
-
-	const systemContent = await readFile('./data/chatbot-configuration.txt', 'utf-8');
 
 	// Find the closest count(int) paragraphs
 	let closestParagraphs = findClosestParagraphs(embeddedQuestion, 5); // Tweak this value for selecting paragraphs number
