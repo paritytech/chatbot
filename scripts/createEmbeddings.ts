@@ -1,4 +1,4 @@
-import { OpenAIApi, Configuration } from 'openai';
+import OpenAi from 'openai';
 import { MarkdownTextSplitter } from 'langchain/text_splitter';
 import { readFile, writeFile, readdir, mkdir } from 'fs/promises';
 
@@ -50,7 +50,7 @@ const generateEmbedding = async (
 		throw new Error('Missing OPENAI_API_KEY');
 	}
 
-	const openai = new OpenAIApi(new Configuration({ apiKey: openAIApiKey }));
+	const openai = new OpenAi({ apiKey: openAIApiKey });
 	const embeddingStore: { [key: string]: Embeddings } = {}; // Contains embedded data for future use
 	// Reads the raw text file
 	console.log('Embedding Started ⌛');
@@ -64,7 +64,7 @@ const generateEmbedding = async (
 		try {
 			console.log("Sent file '%s' over to OpenAI 🚀", fileName);
 
-			const response = await openai.createEmbedding({
+			const response = await openai.embeddings.create({
 				input: paras,
 				model: 'text-embedding-ada-002'
 			});
@@ -72,17 +72,17 @@ const generateEmbedding = async (
 			const countParas = paras.length;
 
 			// Check if data recieved correctly
-			if (response.data.data.length >= countParas) {
+			if (response.data.length >= countParas) {
 				for (let i = 0; i < countParas; i++) {
 					// Adding each embedded para to embeddingStore
 					const key = paras[i];
 					embeddingStore[key] = {
-						embedding: response.data.data[i].embedding,
+						embedding: response.data[i].embedding,
 						created: new Date().getTime()
 					};
 				}
 			} else {
-				console.error('Send %s paragraphs but got %s back', countParas, response.data.data.length);
+				console.error('Send %s paragraphs but got %s back', countParas, response.data.length);
 				throw new Error('Missmatch in amount of returned content');
 			}
 
