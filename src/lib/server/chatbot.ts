@@ -1,7 +1,9 @@
 import { OPENAI_API_KEY } from '$env/static/private';
 import OpenAI from 'openai';
-import embeddingStoreJSON from '../../../data/embeddings/polkadot-test.json';
-import systemContent from "../../../data/chatbot-configuration.txt?raw";
+import systemContent from '../../../data/chatbot-configuration.txt?raw';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { LocalIndex } from 'vectra';
 
 if (!OPENAI_API_KEY) {
 	throw new Error('No api key');
@@ -9,8 +11,18 @@ if (!OPENAI_API_KEY) {
 
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
+const dbLocation = path.join(
+	path.parse(fileURLToPath(import.meta.url)).dir,
+	'..',
+	'embedings'
+);
+
+console.log('Connecting to index in', dbLocation);
+
+const index = new LocalIndex(dbLocation);
+
 // Config Variables
-let embeddingStore: { [key: string]: { embedding: number[]; created: number } } = {};
+const embeddingStore: { [key: string]: { embedding: number[]; created: number } } = {};
 
 const maxTokens = 300; // Just to save my money :')
 let embeddedQuestion;
@@ -50,10 +62,10 @@ const keyExtractParagraph = (key: string) => {
 
 // Calculates the similarity score of question and context paragraphs
 const compareEmbeddings = (embedding1: number[], embedding2: number[]) => {
-	var length = Math.min(embedding1.length, embedding2.length);
-	var dotprod = 0;
+	const length = Math.min(embedding1.length, embedding2.length);
+	let dotprod = 0;
 
-	for (var i = 0; i < length; i++) {
+	for (let i = 0; i < length; i++) {
 		dotprod += embedding1[i] * embedding2[i];
 	}
 
@@ -62,12 +74,12 @@ const compareEmbeddings = (embedding1: number[], embedding2: number[]) => {
 
 // Loop through each context paragraph, calculates the score, sort using score and return top count(int) paragraphs
 const findClosestParagraphs = (questionEmbedding: number[], count: number) => {
-	var items = [];
+	const items = [];
 
 	for (const key in embeddingStore) {
-		let paragraph = keyExtractParagraph(key);
+		const paragraph = keyExtractParagraph(key);
 
-		let currentEmbedding = embeddingStore[key].embedding;
+		const currentEmbedding = embeddingStore[key].embedding;
 
 		items.push({
 			paragraph: paragraph,
@@ -83,15 +95,12 @@ const findClosestParagraphs = (questionEmbedding: number[], count: number) => {
 	return items.slice(0, count).map((item) => item.paragraph);
 };
 
-export const getCompletationData = async (prompt: string): Promise<OpenAI.Chat.ChatCompletionCreateParamsStreaming> => {
-	// Retrieve embedding store and parse it
-	embeddingStore = embeddingStoreJSON as {
-		[key: string]: { embedding: number[]; created: number };
-	};
-
+export const getCompletationData = async (
+	prompt: string
+): Promise<OpenAI.Chat.ChatCompletionCreateParamsStreaming> => {
 	// Embed the prompt using embedding model
 
-	let embeddedQuestionResponse = await openai.embeddings.create({
+	const embeddedQuestionResponse = await openai.embeddings.create({
 		input: prompt,
 		model: 'text-embedding-ada-002'
 	});
@@ -103,9 +112,18 @@ export const getCompletationData = async (prompt: string): Promise<OpenAI.Chat.C
 		throw Error('Question not embedded properly');
 	}
 
-	// Find the closest count(int) paragraphs
-	let closestParagraphs = findClosestParagraphs(embeddedQuestion, 5); // Tweak this value for selecting paragraphs number
+	if (!(await index.isIndexCreated())) {
+		console.log('Index is not created. Creating new one');
+		await index.createIndex();
+	}
 
+	// Find the closest count(int) paragraphs
+	const closestParagraphs = (await index.queryItems(embeddedQuestion, 5)).map(
+		(q) => q.item.metadata.text as string
+	);
+	// let closestParagraphs = findClosestParagraphs(embeddedQuestion, 5); // Tweak this value for selecting paragraphs number
+
+	// console.log("prompts", createPrompt(prompt, closestParagraphs));
 	return {
 		model: 'gpt-3.5-turbo',
 		messages: [

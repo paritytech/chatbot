@@ -78,7 +78,7 @@
 					<li>Doesn't properly format Markdown</li>
 					<li>
 						It only knows things that are available in <a class="link" href="https://wiki.polkadot.network"
-							>use.ink</a
+							>wiki.polkadot.network</a
 						>
 					</li>
 				</ul>
