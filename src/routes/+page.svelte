@@ -70,14 +70,14 @@
 	<div class="hero min-h-screen bg-base-200">
 		<div class="hero-content flex-col lg:flex-row-reverse max-w-screen-xl gap-8">
 			<div class="text-center lg:text-left">
-				<h1 class="text-5xl font-bold">Ink! Chatbot</h1>
-				<p class="pt-6">Ask me anything about Ink</p>
+				<h1 class="text-5xl font-bold">Polkadot! Chatbot</h1>
+				<p class="pt-6">Ask me anything about Polkadot</p>
 				<p>Pre alpha Proof of Concept. Expect chaos</p>
 				<ul class="list-disc">
 					<li>Doesn't have memory. You can not do follow up questions</li>
 					<li>Doesn't properly format Markdown</li>
 					<li>
-						It only knows things that are available in <a class="link" href="https://use.ink"
+						It only knows things that are available in <a class="link" href="https://wiki.polkadot.network"
 							>use.ink</a
 						>
 					</li>
