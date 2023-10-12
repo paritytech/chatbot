@@ -1,5 +1,5 @@
 import { getCompletationData } from '$lib/server/chatbot.js';
-import { OpenAIStream } from '$lib/server/stream';
+import { chatStream } from '$lib/server/stream';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -9,6 +9,6 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	const completion = await getCompletationData(body.question);
 
-	const stream = await OpenAIStream(completion);
+	const stream = await chatStream(completion);
 	return new Response(stream);
 };

@@ -1,5 +1,5 @@
 import { OPENAI_API_KEY } from '$env/static/private';
-import { Configuration, OpenAIApi, type CreateChatCompletionRequest } from 'openai';
+import OpenAI from 'openai';
 import embeddingStoreJSON from '../../../data/embeddings/polkadot-test.json';
 import systemContent from "../../../data/chatbot-configuration.txt?raw";
 
@@ -7,7 +7,7 @@ if (!OPENAI_API_KEY) {
 	throw new Error('No api key');
 }
 
-const openai = new OpenAIApi(new Configuration({ apiKey: OPENAI_API_KEY }));
+const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
 // Config Variables
 let embeddingStore: { [key: string]: { embedding: number[]; created: number } } = {};
@@ -83,7 +83,7 @@ const findClosestParagraphs = (questionEmbedding: number[], count: number) => {
 	return items.slice(0, count).map((item) => item.paragraph);
 };
 
-export const getCompletationData = async (prompt: string): Promise<CreateChatCompletionRequest> => {
+export const getCompletationData = async (prompt: string): Promise<OpenAI.Chat.ChatCompletionCreateParamsStreaming> => {
 	// Retrieve embedding store and parse it
 	embeddingStore = embeddingStoreJSON as {
 		[key: string]: { embedding: number[]; created: number };
@@ -91,14 +91,14 @@ export const getCompletationData = async (prompt: string): Promise<CreateChatCom
 
 	// Embed the prompt using embedding model
 
-	let embeddedQuestionResponse = await openai.createEmbedding({
+	let embeddedQuestionResponse = await openai.embeddings.create({
 		input: prompt,
 		model: 'text-embedding-ada-002'
 	});
 
 	// Some error handling
-	if (embeddedQuestionResponse.data.data.length) {
-		embeddedQuestion = embeddedQuestionResponse.data.data[0].embedding;
+	if (embeddedQuestionResponse.data.length) {
+		embeddedQuestion = embeddedQuestionResponse.data[0].embedding;
 	} else {
 		throw Error('Question not embedded properly');
 	}
@@ -122,30 +122,4 @@ export const getCompletationData = async (prompt: string): Promise<CreateChatCom
 		temperature: 0, // Tweak for more random answers,
 		stream: true
 	};
-};
-
-export const generateCompletion = async (prompt: string) => {
-	console.log('Called completion function with prompt:', prompt);
-
-	try {
-		const completionRequest = await getCompletationData(prompt);
-
-		const completionData = await openai.createChatCompletion(completionRequest);
-
-		const msg = completionData.data.choices[0].message;
-
-		if (!msg) {
-			throw new Error('No answer gotten');
-		}
-
-		console.log('Answer:', msg.content.trim());
-		return msg.content.trim();
-	} catch (error: any) {
-		console.log(error);
-		if (error.response) {
-			console.error(error.response.status, error.response.data);
-		} else {
-			console.error(`Error with OpenAI API request: ${error.message}`);
-		}
-	}
 };
