@@ -53,6 +53,8 @@
 		"marked": "^9.1.1",
 		"ml-distance": "^4.0.1",
 		"openai": "^4.12.1",
-		"prismjs": "^1.29.0"
+		"prismjs": "^1.29.0",
+		"redis": "^4.6.10",
+		"vectra": "^0.4.4"
 	}
 }

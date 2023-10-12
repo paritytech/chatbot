@@ -1,6 +1,9 @@
 import OpenAi from 'openai';
 import { MarkdownTextSplitter } from 'langchain/text_splitter';
 import { readFile, writeFile, readdir, mkdir } from 'fs/promises';
+import path from 'path';
+import url from 'url';
+import { LocalIndex } from 'vectra';
 
 type FileAndContent = [string, string];
 
@@ -40,7 +43,7 @@ const handleMarkdownContent = async (files: FileAndContent[]): Promise<[string, 
 	return parsedFiles;
 };
 
-type Embeddings = { embedding: number[]; created: number };
+export type Embeddings = { embedding: number[]; created: number };
 
 const generateEmbedding = async (
 	files: [string, string[]][]
@@ -54,6 +57,21 @@ const generateEmbedding = async (
 	const embeddingStore: { [key: string]: Embeddings } = {}; // Contains embedded data for future use
 	// Reads the raw text file
 	console.log('Embedding Started ⌛');
+
+	const dbLocation = path.join(
+		path.parse(url.fileURLToPath(import.meta.url)).dir,
+		'..',
+		'src/lib/embeddings'
+	);
+
+	console.log('Connecting to index in', dbLocation);
+
+	const index = new LocalIndex(dbLocation);
+
+	if (!(await index.isIndexCreated())) {
+		console.log('Index is not created. Creating new one');
+		await index.createIndex();
+	}
 
 	// Generate unix timestamp
 	const startTime = new Date().getTime();
@@ -80,6 +98,10 @@ const generateEmbedding = async (
 						embedding: response.data[i].embedding,
 						created: new Date().getTime()
 					};
+					await index.insertItem({
+						vector: response.data[i].embedding,
+						metadata: { text: key }
+					});
 				}
 			} else {
 				console.error('Send %s paragraphs but got %s back', countParas, response.data.length);
@@ -106,7 +128,7 @@ const generateEmbedding = async (
 	return embeddingStore;
 };
 
-export const generateEmbeddings = async () => {
+export const generateEmbeddings = async (): Promise<{ [key: string]: Embeddings }> => {
 	await mkdir('./data/embeddings', { recursive: true });
 	const files = await fetchFiles();
 	const docs = await handleMarkdownContent(files);
@@ -114,4 +136,6 @@ export const generateEmbeddings = async () => {
 	const embeddings = await generateEmbedding(docs);
 	// Write embeddingStore to destination file
 	await writeFile(destPath, JSON.stringify(embeddings, null, 2));
+
+	return embeddings;
 };
