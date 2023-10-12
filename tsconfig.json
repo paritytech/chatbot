@@ -1,21 +1,17 @@
 {
-  "compilerOptions": {
-
-    "target": "es2016",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
- 
-    "module": "commonjs",                                /* Specify what module code is generated. */
- 
-    "esModuleInterop": true,                             /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
-    "resolveJsonModule": true,
-    "forceConsistentCasingInFileNames": true,            /* Ensure that casing is correct in imports. */
-
-    "strict": true,                                      /* Enable all strict type-checking options. */
-    "lib": ["ES2021"],
- 
-    "skipLibCheck": true,                                 /* Skip type checking all .d.ts files. */
-    "rootDir": "./",
-    "outDir": "./dist",
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "**/*.spec.ts", "client"],  
+	"extends": "./.svelte-kit/tsconfig.json",
+	"compilerOptions": {
+		"allowJs": true,
+		"checkJs": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"sourceMap": true,
+		"strict": true
+	},
+	"ts-node": {
+		"esm": true,
+		"experimentalSpecifierResolution": "node"
+	}
 }

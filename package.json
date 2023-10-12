@@ -1,44 +1,57 @@
 {
-  "name": "chatbot",
-  "version": "1.0.0",
-  "description": "Polkadot chatbot",
-  "main": "dist/src/server.js",
-  "scripts": {
-    "start": "node dist/index.js",
-    "build": "ncc build src/server.ts --license LICENSE",
-    "fetch-docs": "ts-node src/fetch.ts",
-    "embeddings": "ts-node src/createEmbeddings.ts",
-    "ask": "ts-node src/cli.ts",
-    "setup": "ts-node src/setup.ts",
-    "postinstall": "npm ci --prefix client",
-    "postbuild": "npm run build --prefix client",
-    "server": "ts-node src/server.ts"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/paritytech/chatbot.git"
-  },
-  "author": "Javier Bullrich <javier.bullrich@parity.io>",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/paritytech/chatbot/issues"
-  },
-  "homepage": "https://github.com/paritytech/chatbot#readme",
-  "dependencies": {
-    "@octokit/rest": "^19.0.8",
-    "axios": "^1.4.0",
-    "dotenv": "^16.0.3",
-    "express": "^4.18.2",
-    "langchain": "^0.0.75",
-    "ml-distance": "^4.0.0",
-    "openai": "^3.2.1",
-    "prompts": "^2.4.2"
-  },
-  "devDependencies": {
-    "@types/express": "^4.17.17",
-    "@types/node": "^20.1.5",
-    "@types/prompts": "^2.4.4",
-    "@vercel/ncc": "^0.36.1",
-    "ts-node": "^10.9.1"
-  }
+	"name": "bot",
+	"version": "0.0.1",
+	"private": true,
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"test": "playwright test",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"lint": "prettier --plugin-search-dir . --check . && eslint .",
+		"format": "prettier --plugin-search-dir . --write .",
+		"fetch-docs": "ts-node scripts/fetch.ts",
+		"embeddings": "ts-node scripts/createEmbeddings.ts",
+		"setup": "ts-node scripts/setup.ts"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.28.1",
+		"@sveltejs/adapter-node": "^1.2.4",
+		"@sveltejs/adapter-vercel": "^3.0.1",
+		"@sveltejs/kit": "^1.5.0",
+		"@types/marked": "^5.0.0",
+		"@types/prismjs": "^1.26.0",
+		"@typescript-eslint/eslint-plugin": "^5.45.0",
+		"@typescript-eslint/parser": "^5.45.0",
+		"autoprefixer": "^10.4.14",
+		"eslint": "^8.28.0",
+		"eslint-config-prettier": "^8.5.0",
+		"eslint-plugin-svelte": "^2.26.0",
+		"postcss": "^8.4.23",
+		"postcss-load-config": "^4.0.1",
+		"prettier": "^2.8.0",
+		"prettier-plugin-svelte": "^2.8.1",
+		"svelte": "^3.54.0",
+		"svelte-check": "^3.0.1",
+		"svelte-preprocess": "^5.0.3",
+		"tailwindcss": "^3.3.1",
+		"ts-node": "^10.9.1",
+		"tslib": "^2.4.1",
+		"typescript": "^5.0.0",
+		"vite": "^4.3.0"
+	},
+	"type": "module",
+	"dependencies": {
+		"@octokit/rest": "^19.0.11",
+		"axios": "^1.4.0",
+		"daisyui": "^3.0.1",
+		"dotenv": "^16.1.3",
+		"eventsource-parser": "^1.0.0",
+		"langchain": "^0.0.88",
+		"marked": "^5.0.4",
+		"ml-distance": "^4.0.1",
+		"openai": "^3.2.1",
+		"prismjs": "^1.29.0"
+	}
 }
