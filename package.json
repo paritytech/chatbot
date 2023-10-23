@@ -5,7 +5,7 @@
 	"scripts": {
 		"start": "node build",
 		"dev": "vite dev",
-		"build": "vite build",
+		"build": "vite build && cp -rf src/lib/embeddings build/server/embeddings",
 		"preview": "vite preview",
 		"test": "playwright test",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
