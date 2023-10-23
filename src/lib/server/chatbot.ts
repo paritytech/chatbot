@@ -19,10 +19,6 @@ console.log('Connecting to index in', dbLocation);
 
 const index = new LocalIndex(dbLocation);
 
-// Config Variables
-const embeddingStore: { [key: string]: { embedding: number[]; created: number } } = {};
-
-const maxTokens = 300; // Just to save my money :')
 let embeddedQuestion;
 
 const createPrompt = (question: string, data: SourceData[]) => {
@@ -54,47 +50,6 @@ const createPrompt = (question: string, data: SourceData[]) => {
 	//   "?" +
 	//   "\n\nAnswer :"
 	// );
-};
-
-// Removes the prefix from paragraph
-const keyExtractParagraph = (key: string) => {
-	return key;
-	// return key.substring(embeds_storage_prefix.length);
-};
-
-// Calculates the similarity score of question and context paragraphs
-const compareEmbeddings = (embedding1: number[], embedding2: number[]) => {
-	const length = Math.min(embedding1.length, embedding2.length);
-	let dotprod = 0;
-
-	for (let i = 0; i < length; i++) {
-		dotprod += embedding1[i] * embedding2[i];
-	}
-
-	return dotprod;
-};
-
-// Loop through each context paragraph, calculates the score, sort using score and return top count(int) paragraphs
-const findClosestParagraphs = (questionEmbedding: number[], count: number) => {
-	const items = [];
-
-	for (const key in embeddingStore) {
-		const paragraph = keyExtractParagraph(key);
-
-		const currentEmbedding = embeddingStore[key].embedding;
-
-		items.push({
-			paragraph: paragraph,
-			// score: distances_from_embeddings(questionEmbedding, currentEmbedding, "Linf"),
-			score: compareEmbeddings(questionEmbedding, currentEmbedding)
-		});
-	}
-
-	items.sort(function (a, b) {
-		return b.score - a.score;
-	});
-
-	return items.slice(0, count).map((item) => item.paragraph);
 };
 
 export const getCompletationData = async (
