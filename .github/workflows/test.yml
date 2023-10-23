@@ -15,4 +15,9 @@ jobs:
           node-version: 18
       - run: npm ci
       - run: npm run check
+        env:
+          REPO: "repo"
+          ORG: "org"
+          GITHUB_TOKEN: "your-repo-token"
+          OPENAI_API_KEY: "you-open-ai-key"
       - run: npm run build
