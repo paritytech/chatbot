@@ -8,7 +8,7 @@ import { LocalIndex } from 'vectra';
 type FileData = { filename: string; content: string[]; source?: string };
 type FileAndContent = [string, string];
 
-let destPath = './data/embedings/polkadot-test.json';
+let destPath = './data/embeddings/polkadot-test.json';
 const docsSource = 'https://wiki.polkadot.network/docs/';
 
 /** Parses the metadata from a markdown file and removes it from the original text
@@ -90,7 +90,7 @@ const generateEmbedding = async (files: FileData[]): Promise<{ [key: string]: Em
 	const dbLocation = path.join(
 		path.parse(url.fileURLToPath(import.meta.url)).dir,
 		'..',
-		'src/lib/embedings'
+		'src/lib/embeddings'
 	);
 
 	console.log('Connecting to index in', dbLocation);
@@ -158,7 +158,7 @@ const generateEmbedding = async (files: FileData[]): Promise<{ [key: string]: Em
 };
 
 export const generateEmbeddings = async (): Promise<{ [key: string]: Embeddings }> => {
-	await mkdir('./data/embedings', { recursive: true });
+	await mkdir('./data/embeddings', { recursive: true });
 	const files = await fetchFiles();
 	const docs = await handleMarkdownContent(files);
 

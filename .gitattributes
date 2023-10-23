@@ -1,1 +1,1 @@
-src/lib/embedings/index.json filter=lfs diff=lfs merge=lfs -text
+src/lib/embeddings/index.json filter=lfs diff=lfs merge=lfs -text
