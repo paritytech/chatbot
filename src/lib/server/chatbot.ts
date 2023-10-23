@@ -13,7 +13,7 @@ type SourceData = { content: string; source: string };
 
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
-const dbLocation = "static/embeddings"
+const dbLocation = 'static/embeddings';
 
 console.log('Connecting to index in', dbLocation);
 

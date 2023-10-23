@@ -4,10 +4,10 @@ on:
   pull_request:
 
 env:
-  REPO: "repo"
-  ORG: "org"
-  GITHUB_TOKEN: "your-repo-token"
-  OPENAI_API_KEY: "you-open-ai-key"
+  REPO: 'repo'
+  ORG: 'org'
+  GITHUB_TOKEN: 'your-repo-token'
+  OPENAI_API_KEY: 'you-open-ai-key'
 
 jobs:
   test:
