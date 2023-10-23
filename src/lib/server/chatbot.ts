@@ -9,13 +9,11 @@ if (!OPENAI_API_KEY) {
 	throw new Error('No api key');
 }
 
+type SourceData = { content: string; source: string };
+
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
-const dbLocation = path.join(
-	path.parse(fileURLToPath(import.meta.url)).dir,
-	'..',
-	'embedings'
-);
+const dbLocation = path.join(path.parse(fileURLToPath(import.meta.url)).dir, '..', 'embedings');
 
 console.log('Connecting to index in', dbLocation);
 
@@ -27,13 +25,17 @@ const embeddingStore: { [key: string]: { embedding: number[]; created: number } 
 const maxTokens = 300; // Just to save my money :')
 let embeddedQuestion;
 
-const createPrompt = (question: string, paragraph: string[]) => {
+const createPrompt = (question: string, data: SourceData[]) => {
 	// console.debug("paragraph", paragraph.join("\n\n"));
+
+	const groupContent = data.map(
+		({ content, source }) => content + (source ? `\nSource: ${source}` : '\n')
+	);
 
 	return (
 		'Answer the following question, also use your own knowledge when necessary :\n\n' +
 		'Context :\n' +
-		paragraph.join('\n\n') +
+		groupContent.join('\n\n') +
 		'\n\nQuestion :\n' +
 		question +
 		'?' +
@@ -118,12 +120,16 @@ export const getCompletationData = async (
 	}
 
 	// Find the closest count(int) paragraphs
-	const closestParagraphs = (await index.queryItems(embeddedQuestion, 5)).map(
-		(q) => q.item.metadata.text as string
+	const queryResult = await index.queryItems(embeddedQuestion, 5);
+	console.log(embeddedQuestion.length, queryResult);
+	const sourceData = queryResult.map(
+		(q) =>
+			({
+				content: q.item.metadata.text as string,
+				source: q.item.metadata.source as string
+			}) as SourceData
 	);
-	// let closestParagraphs = findClosestParagraphs(embeddedQuestion, 5); // Tweak this value for selecting paragraphs number
 
-	// console.log("prompts", createPrompt(prompt, closestParagraphs));
 	return {
 		model: 'gpt-3.5-turbo',
 		messages: [
@@ -133,7 +139,7 @@ export const getCompletationData = async (
 			},
 			{
 				role: 'user',
-				content: createPrompt(prompt, closestParagraphs)
+				content: createPrompt(prompt, sourceData)
 			}
 		],
 		// max_tokens: maxTokens,
