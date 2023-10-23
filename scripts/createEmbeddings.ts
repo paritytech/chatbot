@@ -1,4 +1,4 @@
-import { mkdir, readFile, readdir, writeFile } from 'fs/promises';
+import { readFile, readdir, writeFile } from 'fs/promises';
 import { MarkdownTextSplitter } from 'langchain/text_splitter';
 import OpenAi from 'openai';
 import path from 'path';
@@ -90,7 +90,7 @@ const generateEmbedding = async (files: FileData[]): Promise<{ [key: string]: Em
 	const dbLocation = path.join(
 		path.parse(url.fileURLToPath(import.meta.url)).dir,
 		'..',
-		'static/embeddings'
+		'src/lib/embeddings'
 	);
 
 	console.log('Connecting to index in', dbLocation);
