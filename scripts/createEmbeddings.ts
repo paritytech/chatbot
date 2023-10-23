@@ -1,4 +1,4 @@
-import { mkdir, readFile, readdir, writeFile } from 'fs/promises';
+import { readFile, readdir, writeFile } from 'fs/promises';
 import { MarkdownTextSplitter } from 'langchain/text_splitter';
 import OpenAi from 'openai';
 import path from 'path';
