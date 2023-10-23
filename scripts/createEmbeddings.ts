@@ -158,7 +158,6 @@ const generateEmbedding = async (files: FileData[]): Promise<{ [key: string]: Em
 };
 
 export const generateEmbeddings = async (): Promise<{ [key: string]: Embeddings }> => {
-	await mkdir('./data/embeddings', { recursive: true });
 	const files = await fetchFiles();
 	const docs = await handleMarkdownContent(files);
 
