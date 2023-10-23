@@ -12,7 +12,7 @@
 			</div>
 		</div>
 	{/if}
-	<div class="chat-bubble max-w-full" class:chat-bubble-info={isQuestion}>
+	<div class="chat-bubble max-w-full prose" class:chat-bubble-accent={!isQuestion} class:chat-bubble-info={isQuestion}>
 		<slot />
 	</div>
 </div>

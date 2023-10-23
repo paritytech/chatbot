@@ -28,8 +28,6 @@ export const askQuestion = async (
 					const { value, done } = await reader.read();
 					const chunkValue = decoder.decode(value);
 
-					console.log(chunkValue);
-
 					message += chunkValue;
 					if (callback) {
 						callback(chunkValue);

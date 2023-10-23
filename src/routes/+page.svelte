@@ -44,10 +44,6 @@
 		qAndA = qAndA;
 		const queryAnswer = await askStream(question, (word) => {
 			streamAnswer += word;
-			// qAndA[currentAnswer].text += word;
-			// qAndA = [...qAndA];
-
-			console.log('answer to', question, qAndA);
 		});
 		streamAnswer = '';
 		console.log('Complete answer is:', queryAnswer);

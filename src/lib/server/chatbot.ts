@@ -9,31 +9,29 @@ if (!OPENAI_API_KEY) {
 	throw new Error('No api key');
 }
 
+type SourceData = { content: string; source: string };
+
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
-const dbLocation = path.join(
-	path.parse(fileURLToPath(import.meta.url)).dir,
-	'..',
-	'embedings'
-);
+const dbLocation = path.join(path.parse(fileURLToPath(import.meta.url)).dir, '..', 'embeddings');
 
 console.log('Connecting to index in', dbLocation);
 
 const index = new LocalIndex(dbLocation);
 
-// Config Variables
-const embeddingStore: { [key: string]: { embedding: number[]; created: number } } = {};
-
-const maxTokens = 300; // Just to save my money :')
 let embeddedQuestion;
 
-const createPrompt = (question: string, paragraph: string[]) => {
+const createPrompt = (question: string, data: SourceData[]) => {
 	// console.debug("paragraph", paragraph.join("\n\n"));
+
+	const groupContent = data.map(
+		({ content, source }) => content + (source ? `\nSource: ${source}` : '\n')
+	);
 
 	return (
 		'Answer the following question, also use your own knowledge when necessary :\n\n' +
 		'Context :\n' +
-		paragraph.join('\n\n') +
+		groupContent.join('\n\n') +
 		'\n\nQuestion :\n' +
 		question +
 		'?' +
@@ -52,47 +50,6 @@ const createPrompt = (question: string, paragraph: string[]) => {
 	//   "?" +
 	//   "\n\nAnswer :"
 	// );
-};
-
-// Removes the prefix from paragraph
-const keyExtractParagraph = (key: string) => {
-	return key;
-	// return key.substring(embeds_storage_prefix.length);
-};
-
-// Calculates the similarity score of question and context paragraphs
-const compareEmbeddings = (embedding1: number[], embedding2: number[]) => {
-	const length = Math.min(embedding1.length, embedding2.length);
-	let dotprod = 0;
-
-	for (let i = 0; i < length; i++) {
-		dotprod += embedding1[i] * embedding2[i];
-	}
-
-	return dotprod;
-};
-
-// Loop through each context paragraph, calculates the score, sort using score and return top count(int) paragraphs
-const findClosestParagraphs = (questionEmbedding: number[], count: number) => {
-	const items = [];
-
-	for (const key in embeddingStore) {
-		const paragraph = keyExtractParagraph(key);
-
-		const currentEmbedding = embeddingStore[key].embedding;
-
-		items.push({
-			paragraph: paragraph,
-			// score: distances_from_embeddings(questionEmbedding, currentEmbedding, "Linf"),
-			score: compareEmbeddings(questionEmbedding, currentEmbedding)
-		});
-	}
-
-	items.sort(function (a, b) {
-		return b.score - a.score;
-	});
-
-	return items.slice(0, count).map((item) => item.paragraph);
 };
 
 export const getCompletationData = async (
@@ -118,12 +75,16 @@ export const getCompletationData = async (
 	}
 
 	// Find the closest count(int) paragraphs
-	const closestParagraphs = (await index.queryItems(embeddedQuestion, 5)).map(
-		(q) => q.item.metadata.text as string
+	const queryResult = await index.queryItems(embeddedQuestion, 5);
+	console.log(embeddedQuestion.length, queryResult);
+	const sourceData = queryResult.map(
+		(q) =>
+			({
+				content: q.item.metadata.text as string,
+				source: q.item.metadata.source as string
+			}) as SourceData
 	);
-	// let closestParagraphs = findClosestParagraphs(embeddedQuestion, 5); // Tweak this value for selecting paragraphs number
 
-	// console.log("prompts", createPrompt(prompt, closestParagraphs));
 	return {
 		model: 'gpt-3.5-turbo',
 		messages: [
@@ -133,7 +94,7 @@ export const getCompletationData = async (
 			},
 			{
 				role: 'user',
-				content: createPrompt(prompt, closestParagraphs)
+				content: createPrompt(prompt, sourceData)
 			}
 		],
 		// max_tokens: maxTokens,

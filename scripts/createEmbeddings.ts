@@ -1,13 +1,40 @@
-import OpenAi from 'openai';
+import { mkdir, readFile, readdir, writeFile } from 'fs/promises';
 import { MarkdownTextSplitter } from 'langchain/text_splitter';
-import { readFile, writeFile, readdir, mkdir } from 'fs/promises';
+import OpenAi from 'openai';
 import path from 'path';
 import url from 'url';
 import { LocalIndex } from 'vectra';
 
+type FileData = { filename: string; content: string[]; source?: string };
 type FileAndContent = [string, string];
 
 let destPath = './data/embeddings/polkadot-test.json';
+const docsSource = 'https://wiki.polkadot.network/docs/';
+
+/** Parses the metadata from a markdown file and removes it from the original text
+ * Returns an tuple [cleanedFile, metadataDictionary]
+ */
+const cleanMetadata = (markdown: string): [string, Record<string, string> | null] => {
+	const charactersBetweenGroupedHyphens = /^---([\s\S]*?)---/;
+	const metadataMatched = markdown.match(charactersBetweenGroupedHyphens);
+
+	if (!metadataMatched || !metadataMatched[1]) {
+		return [markdown, null];
+	}
+
+	const metadata = metadataMatched[1];
+	const metadataLines = metadata.split('\n');
+	const metadataObject = metadataLines.reduce((accumulator: Record<string, string>, line) => {
+		const [key, ...value] = line.split(':').map((part) => part.trim());
+
+		if (key) {
+			accumulator[key] = value[1] ? value.join(':') : value.join('');
+		}
+		return accumulator;
+	}, {});
+
+	return [markdown.replace(/^(---[\s\S]*?---)/, '').trim(), metadataObject];
+};
 
 const fetchFiles = async (): Promise<FileAndContent[]> => {
 	const files: FileAndContent[] = [];
@@ -26,18 +53,22 @@ const fetchFiles = async (): Promise<FileAndContent[]> => {
 	return files;
 };
 
-const handleMarkdownContent = async (files: FileAndContent[]): Promise<[string, string[]][]> => {
+const handleMarkdownContent = async (files: FileAndContent[]): Promise<FileData[]> => {
 	console.log('Parsing Markdown files 📄');
 	const textSplitter = new MarkdownTextSplitter();
 
-	const parsedFiles: [string, string[]][] = [];
+	const parsedFiles: FileData[] = [];
 
 	for (let i = 0; i < files.length; i++) {
 		const [fileName, content] = files[i];
-		const parsedMarkdown = await textSplitter.createDocuments([content]);
-		parsedFiles[i] = [fileName, parsedMarkdown.map((pm) => pm.pageContent)];
-		const parsedDoc = JSON.stringify(parsedMarkdown, null, 2);
-		// await writeFile(`./data/parsed/${fileName}.json`, parsedDoc);
+		const [cleanedContent, metadata] = cleanMetadata(content);
+		const parsedMarkdown = await textSplitter.createDocuments([cleanedContent]);
+		const source = metadata?.slug.replace(/^(?:\.\.\/)+/, docsSource);
+		parsedFiles[i] = {
+			filename: fileName,
+			content: parsedMarkdown.map((pm) => pm.pageContent),
+			source
+		};
 	}
 
 	return parsedFiles;
@@ -45,9 +76,7 @@ const handleMarkdownContent = async (files: FileAndContent[]): Promise<[string, 
 
 export type Embeddings = { embedding: number[]; created: number };
 
-const generateEmbedding = async (
-	files: [string, string[]][]
-): Promise<{ [key: string]: Embeddings }> => {
+const generateEmbedding = async (files: FileData[]): Promise<{ [key: string]: Embeddings }> => {
 	const openAIApiKey = process.env.OPENAI_API_KEY;
 	if (!openAIApiKey) {
 		throw new Error('Missing OPENAI_API_KEY');
@@ -77,30 +106,30 @@ const generateEmbedding = async (
 	const startTime = new Date().getTime();
 
 	for (let i = 0; i < files.length; i++) {
-		const [fileName, paras] = files[i];
+		const { filename, content, source } = files[i];
 
 		try {
-			console.log("Sent file '%s' over to OpenAI 🚀", fileName);
+			console.log("Sent file '%s' over to OpenAI 🚀", filename);
 
 			const response = await openai.embeddings.create({
-				input: paras,
+				input: content,
 				model: 'text-embedding-ada-002'
 			});
 
-			const countParas = paras.length;
+			const countParas = content.length;
 
 			// Check if data recieved correctly
 			if (response.data.length >= countParas) {
 				for (let i = 0; i < countParas; i++) {
 					// Adding each embedded para to embeddingStore
-					const key = paras[i];
+					const key = content[i];
 					embeddingStore[key] = {
 						embedding: response.data[i].embedding,
 						created: new Date().getTime()
 					};
 					await index.insertItem({
 						vector: response.data[i].embedding,
-						metadata: { text: key }
+						metadata: { text: key, source }
 					});
 				}
 			} else {
@@ -108,7 +137,7 @@ const generateEmbedding = async (
 				throw new Error('Missmatch in amount of returned content');
 			}
 
-			console.log("Finished parsing '%s' 💫. %s remaining!", fileName, files.length - (i + 1));
+			console.log("Finished parsing '%s' 💫. %s remaining!", filename, files.length - (i + 1));
 		} catch (error: any) {
 			console.log('Some error happened');
 			// Error handling code
@@ -129,7 +158,6 @@ const generateEmbedding = async (
 };
 
 export const generateEmbeddings = async (): Promise<{ [key: string]: Embeddings }> => {
-	await mkdir('./data/embeddings', { recursive: true });
 	const files = await fetchFiles();
 	const docs = await handleMarkdownContent(files);
 
