@@ -13,7 +13,7 @@ type SourceData = { content: string; source: string };
 
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
-const dbLocation = path.join(path.parse(fileURLToPath(import.meta.url)).dir, '..', 'embeddings');
+export const dbLocation = path.join(path.parse(fileURLToPath(import.meta.url)).dir, '..', 'embeddings');
 
 console.log('Connecting to index in', dbLocation);
 
@@ -70,8 +70,7 @@ export const getCompletationData = async (
 	}
 
 	if (!(await index.isIndexCreated())) {
-		console.log('Index is not created. Creating new one');
-		await index.createIndex();
+		throw new Error("Index does not exist!");
 	}
 
 	// Find the closest count(int) paragraphs
