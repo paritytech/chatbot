@@ -1,10 +1,10 @@
-name: Deploy page
+name: Test and Build
 
 on:
   pull_request:
 
 jobs:
-  build-site:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
