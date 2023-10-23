@@ -1,0 +1,24 @@
+name: Test and Build
+
+on:
+  pull_request:
+
+env:
+  REPO: "repo"
+  ORG: "org"
+  GITHUB_TOKEN: "your-repo-token"
+  OPENAI_API_KEY: "you-open-ai-key"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
