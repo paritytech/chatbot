@@ -13,4 +13,4 @@ package-lock.json
 yarn.lock
 
 /data
-src/lib/embeddings
+static/embeddings
