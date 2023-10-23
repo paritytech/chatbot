@@ -20,4 +20,4 @@ jobs:
           ORG: "org"
           GITHUB_TOKEN: "your-repo-token"
           OPENAI_API_KEY: "you-open-ai-key"
-      - run: npm run build
+      - run: npm run build -- --mode example
