@@ -90,7 +90,7 @@ const generateEmbedding = async (files: FileData[]): Promise<{ [key: string]: Em
 	const dbLocation = path.join(
 		path.parse(url.fileURLToPath(import.meta.url)).dir,
 		'..',
-		'src/lib/embeddings'
+		'static/embeddings'
 	);
 
 	console.log('Connecting to index in', dbLocation);
