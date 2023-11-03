@@ -1,9 +1,14 @@
-import { OPENAI_API_KEY } from '$env/static/private';
+import { OPENAI_API_KEY, WEAVIATE_PROTOCOL, WEAVIATE_URL } from '$env/static/private';
 import OpenAI from 'openai';
 import systemContent from '../../../data/chatbot-configuration.txt?raw';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { LocalIndex } from 'vectra';
+import weaviate, { ApiKey, ObjectsBatcher } from 'weaviate-ts-client';
+
+export const weaviateClient = weaviate.client({
+	scheme: WEAVIATE_PROTOCOL,
+	host: WEAVIATE_URL,
+});
 
 if (!OPENAI_API_KEY) {
 	throw new Error('No api key');
@@ -16,8 +21,6 @@ const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 export const dbLocation = path.join(path.parse(fileURLToPath(import.meta.url)).dir, '..', 'embeddings');
 
 console.log('Connecting to index in', dbLocation);
-
-const index = new LocalIndex(dbLocation);
 
 let embeddedQuestion;
 
@@ -69,20 +72,10 @@ export const getCompletationData = async (
 		throw Error('Question not embedded properly');
 	}
 
-	if (!(await index.isIndexCreated())) {
-		throw new Error("Index does not exist!");
-	}
+	const result = await weaviateClient.graphql.get().withClassName('Question').withNearVector({vector: embeddedQuestion}).withLimit(5).withFields('text source').do();
 
 	// Find the closest count(int) paragraphs
-	const queryResult = await index.queryItems(embeddedQuestion, 5);
-	console.log(embeddedQuestion.length, queryResult);
-	const sourceData = queryResult.map(
-		(q) =>
-			({
-				content: q.item.metadata.text as string,
-				source: q.item.metadata.source as string
-			}) as SourceData
-	);
+	const data = result.data.Get.Question.map((q) => ({content: q.text, source: q.source}) as SourceData);
 
 	return {
 		model: 'gpt-3.5-turbo',
@@ -93,7 +86,7 @@ export const getCompletationData = async (
 			},
 			{
 				role: 'user',
-				content: createPrompt(prompt, sourceData)
+				content: createPrompt(prompt, data)
 			}
 		],
 		// max_tokens: maxTokens,

@@ -5,7 +5,7 @@
 	"scripts": {
 		"start": "node build",
 		"dev": "vite dev",
-		"build": "vite build && cp -rf src/lib/embeddings build/server/embeddings",
+		"build": "vite build",
 		"preview": "vite preview",
 		"test": "playwright test",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -55,7 +55,6 @@
 		"ml-distance": "^4.0.1",
 		"openai": "^4.12.1",
 		"prismjs": "^1.29.0",
-		"redis": "^4.6.10",
-		"vectra": "^0.4.4"
+		"weaviate-ts-client": "^1.5.0"
 	}
 }
