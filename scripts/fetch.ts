@@ -1,14 +1,15 @@
 import { Octokit } from '@octokit/rest';
 import axios from 'axios';
 import { mkdir, writeFile } from 'fs/promises';
+import { env } from './env';
 
 export const fetchDocs = async () => {
 	const repo = {
-		owner: process.env.ORG as string,
-		repo: process.env.REPO as string
+		owner: env.ORG,
+		repo: env.REPO
 	};
 
-	const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+	const octokit = new Octokit({ auth: env.GITHUB_TOKEN });
 
 	const {
 		data: { login }

@@ -34,6 +34,8 @@ GITHUB_TOKEN=
 OPENAI_API_KEY=
 ```
 
+You also need to use Weaviate. For local development, we have a `docker-compose` image. If you have a deployed instance, you'll need to update the values with the ones from that instance.
+
 Once that is all completed, you can run the following command to download all the necessary files and generate the embeddings:
 
 ```bash
