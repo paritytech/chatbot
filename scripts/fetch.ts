@@ -3,7 +3,18 @@ import axios from 'axios';
 import { mkdir, writeFile } from 'fs/promises';
 import { env } from './env';
 
-export const fetchDocs = async () => {
+const docsSource = 'https://wiki.polkadot.network/docs/';
+
+/** Removes import arguments and adds the source to the document */
+const handleMarkdownContent = (content: string): string => {
+	// Remove any line starting with a 
+	const removedImports = content.replace(/import.+".+/g, "");
+	const withSource = removedImports.replace(/slug: [?:../]+/, `source: ${docsSource}`);
+
+	return withSource;
+};
+
+export const fetchDocs = async (): Promise<string> => {
 	const repo = {
 		owner: env.ORG,
 		repo: env.REPO
@@ -50,6 +61,8 @@ export const fetchDocs = async () => {
 
 	mkdir('data/docs/', { recursive: true });
 
+	const filenames:{fileName:string,content:string}[] = [];
+
 	for (let i = 0; i < cleanedFiles.length; i++) {
 		const file = cleanedFiles[i];
 		const { data } = await octokit.rest.repos.getContent({
@@ -61,6 +74,14 @@ export const fetchDocs = async () => {
 		const { download_url } = data;
 		const textResponse = await axios.get<string>(download_url);
 		const textData = textResponse.data;
-		await writeFile(`data/docs/${file.path?.replaceAll('/', '-')}`, textData);
+		const fileName = `data/docs/${file.path?.replaceAll('/', '-')}`;
+		const content = handleMarkdownContent(textData);
+		await writeFile(fileName, content);
+		filenames.push({fileName, content});
 	}
+
+	const combinedDocName = "data/combined-doc.md";
+	await writeFile(combinedDocName, `# Wiki\n\n${filenames.map(f => f.content).join("\n\n")}`);
+
+	return combinedDocName;
 };
