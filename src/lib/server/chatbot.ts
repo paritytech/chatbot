@@ -1,7 +1,7 @@
 import { OPENAI_API_KEY, WEAVIATE_PROTOCOL, WEAVIATE_URL } from '$env/static/private';
 import OpenAI from 'openai';
 import weaviate from 'weaviate-ts-client';
-import systemContent from '../../../data/chatbot-configuration.txt?raw';
+import systemContent from '$lib/server/chatbot-configuration.txt?raw';
 
 export const weaviateClient = weaviate.client({
 	scheme: WEAVIATE_PROTOCOL,
