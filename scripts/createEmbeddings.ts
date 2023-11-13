@@ -1,14 +1,26 @@
-import { readFile, readdir, writeFile } from 'fs/promises';
+import { readFile, readdir } from 'fs/promises';
 import { MarkdownTextSplitter } from 'langchain/text_splitter';
 import OpenAi from 'openai';
 import path from 'path';
 import url from 'url';
-import { LocalIndex } from 'vectra';
+import { env } from './env';
+
+import weaviate, { ObjectsBatcher } from 'weaviate-ts-client';
+
+const client = weaviate.client({
+	scheme: env.WEAVIATE_PROTOCOL,
+	host: env.WEAVIATE_URL
+});
+
+type ChatItem = {
+	Text: string;
+	Source: string;
+	Vector: number[];
+};
 
 type FileData = { filename: string; content: string[]; source?: string };
 type FileAndContent = [string, string];
 
-let destPath = './data/embeddings/polkadot-test.json';
 const docsSource = 'https://wiki.polkadot.network/docs/';
 
 /** Parses the metadata from a markdown file and removes it from the original text
@@ -77,7 +89,7 @@ const handleMarkdownContent = async (files: FileAndContent[]): Promise<FileData[
 export type Embeddings = { embedding: number[]; created: number };
 
 const generateEmbedding = async (files: FileData[]): Promise<{ [key: string]: Embeddings }> => {
-	const openAIApiKey = process.env.OPENAI_API_KEY;
+	const openAIApiKey = env.OPENAI_API_KEY;
 	if (!openAIApiKey) {
 		throw new Error('Missing OPENAI_API_KEY');
 	}
@@ -95,15 +107,12 @@ const generateEmbedding = async (files: FileData[]): Promise<{ [key: string]: Em
 
 	console.log('Connecting to index in', dbLocation);
 
-	const index = new LocalIndex(dbLocation);
-
-	if (!(await index.isIndexCreated())) {
-		console.log('Index is not created. Creating new one');
-		await index.createIndex();
-	}
-
 	// Generate unix timestamp
 	const startTime = new Date().getTime();
+
+	let batcher: ObjectsBatcher = client.batch.objectsBatcher();
+	let counter: number = 0;
+	const batchSize: number = 100;
 
 	for (let i = 0; i < files.length; i++) {
 		const { filename, content, source } = files[i];
@@ -127,10 +136,24 @@ const generateEmbedding = async (files: FileData[]): Promise<{ [key: string]: Em
 						embedding: response.data[i].embedding,
 						created: new Date().getTime()
 					};
-					await index.insertItem({
-						vector: response.data[i].embedding,
-						metadata: { text: key, source }
-					});
+
+					const item = {
+						class: 'Question',
+						properties: {
+							text: key,
+							source: source ?? ''
+						},
+						vector: response.data[i].embedding
+					};
+
+					batcher.withObject(item);
+
+					if (counter++ % batchSize === 0) {
+						console.log('Uploading into DB');
+						// Flush the batch queue and restart it
+						await batcher.do();
+						batcher = client.batch.objectsBatcher();
+					}
 				}
 			} else {
 				console.error('Send %s paragraphs but got %s back', countParas, response.data.length);
@@ -150,6 +173,8 @@ const generateEmbedding = async (files: FileData[]): Promise<{ [key: string]: Em
 			throw error;
 		}
 	}
+	await batcher.do();
+	console.log(`Finished importing ${counter} objects.`);
 
 	const completionTime = new Date().getTime();
 	console.log('Embedding finished ✨');
@@ -162,8 +187,6 @@ export const generateEmbeddings = async (): Promise<{ [key: string]: Embeddings 
 	const docs = await handleMarkdownContent(files);
 
 	const embeddings = await generateEmbedding(docs);
-	// Write embeddingStore to destination file
-	await writeFile(destPath, JSON.stringify(embeddings, null, 2));
 
 	return embeddings;
 };

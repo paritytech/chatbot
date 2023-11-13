@@ -5,13 +5,13 @@
 	"scripts": {
 		"start": "node build",
 		"dev": "vite dev",
-		"build": "vite build && cp -rf src/lib/embeddings build/server/embeddings",
+		"build": "vite build",
 		"preview": "vite preview",
 		"test": "playwright test",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"lint": "prettier --plugin-search-dir . --check . && eslint .",
-		"format": "prettier --plugin-search-dir . --write .",
+		"lint": "prettier --check . && eslint .",
+		"format": "prettier --write .",
 		"fetch-docs": "ts-node scripts/fetch.ts",
 		"embeddings": "ts-node scripts/createEmbeddings.ts",
 		"setup": "ts-node scripts/setup.ts"
@@ -27,6 +27,7 @@
 		"@typescript-eslint/eslint-plugin": "^6.7.5",
 		"@typescript-eslint/parser": "^6.7.5",
 		"autoprefixer": "^10.4.16",
+		"envsafe": "^2.0.3",
 		"eslint": "^8.51.0",
 		"eslint-config-prettier": "^9.0.0",
 		"eslint-plugin-svelte": "^2.34.0",
@@ -55,7 +56,6 @@
 		"ml-distance": "^4.0.1",
 		"openai": "^4.12.1",
 		"prismjs": "^1.29.0",
-		"redis": "^4.6.10",
-		"vectra": "^0.4.4"
+		"weaviate-ts-client": "^1.5.0"
 	}
 }
