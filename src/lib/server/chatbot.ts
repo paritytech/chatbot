@@ -19,8 +19,6 @@ const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 let embeddedQuestion;
 
 const createPrompt = (question: string, data: SourceData[]) => {
-	// console.debug("paragraph", paragraph.join("\n\n"));
-
 	const groupContent = data.map(
 		({ content, source }) => content + (source ? `\nSource: ${source}` : '\n')
 	);
@@ -34,24 +32,11 @@ const createPrompt = (question: string, data: SourceData[]) => {
 		'?' +
 		'\n\nAnswer :'
 	);
-
-	// A sample prompt if you don't want it to use its own knowledge
-	// rather answer only from data you've provided
-
-	// return (
-	//   "Answer the following question from the context, if the answer can not be deduced from the context, say 'I dont know' :\n\n" +
-	//   "Context :\n" +
-	//   paragraph.join("\n\n") +
-	//   "\n\nQuestion :\n" +
-	//   question +
-	//   "?" +
-	//   "\n\nAnswer :"
-	// );
 };
 
 export const getCompletationData = async (
 	prompt: string
-): Promise<OpenAI.Chat.ChatCompletionCreateParamsStreaming> => {
+): Promise<OpenAI.Chat.ChatCompletionCreateParamsNonStreaming> => {
 	// Embed the prompt using embedding model
 
 	const embeddedQuestionResponse = await openai.embeddings.create({
@@ -92,7 +77,12 @@ export const getCompletationData = async (
 			}
 		],
 		// max_tokens: maxTokens,
-		temperature: 0, // Tweak for more random answers,
-		stream: true
+		temperature: 0 // Tweak for more random answers,
 	};
+};
+
+export const askQuestion = async (prompt: string): Promise<string> => {
+	const completion = await getCompletationData(prompt);
+	const answer = await openai.chat.completions.create(completion);
+	return answer.choices[0].message.content ?? 'Error';
 };

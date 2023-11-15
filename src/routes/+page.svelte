@@ -6,60 +6,48 @@
 
 	import { highlightAll } from 'prismjs';
 	import ChatBubble from '$lib/components/ChatBubble.svelte';
+	import type { SubmitFunction } from '@sveltejs/kit';
+	import { enhance } from '$app/forms';
+
+	let interaction: [string, 'user' | 'assistant'][] = [];
 
 	let qAndA: { question: boolean; text: string }[] = [];
-	let question: string = 'What is your name?';
-	let request: Promise<string>;
-	let input: HTMLElement;
 	let chat: HTMLElement;
 	let loading: boolean;
+	let errorMsg: string;
 
 	// answer streamed on real time before being parsed by the markdown parser
 	let streamAnswer: string = '';
-
-	// $: loading = !!request;
-
-	async function fetchQuestion(question: string): Promise<string> {
-		const request = await axios.post<string>(
-			'/api',
-			{
-				question
-			},
-			{
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			}
-		);
-		return request.data;
-	}
 
 	const scrollToBottom = async (node: HTMLElement) => {
 		node.scroll({ top: node.scrollHeight, behavior: 'smooth' });
 	};
 
-	async function askQuestion() {
+	const handler: SubmitFunction = ({ formData }) => {
+		const query = formData.get('prompt');
+		interaction = [...interaction, [query as string, 'user']];
 		loading = true;
-		qAndA.push({ question: true, text: question });
-		qAndA = qAndA;
-		const queryAnswer = await askStream(question, (word) => {
-			streamAnswer += word;
-		});
-		streamAnswer = '';
-		console.log('Complete answer is:', queryAnswer);
-		qAndA.push({ question: false, text: queryAnswer });
-		qAndA = qAndA;
-		question = '';
 
-		await tick();
-		scrollToBottom(chat);
-		// document.querySelectorAll('pre code').forEach((el) => {
-		// 	console.log('highlighting', el);
-		// 	// @ts-ignore
-		// 	hljs.highlightElement(el);
-		// });
-		loading = false;
-	}
+		return async ({ update, result }) => {
+			if (result.type === 'error') {
+				errorMsg = JSON.stringify(result.error);
+				return;
+			} else if (result.type === 'failure') {
+				errorMsg = result.data?.message ?? 'An unknown error ocurred';
+				return;
+			}
+			// @ts-ignore data does exist
+			const data = result.data as string;
+			interaction = [...interaction, [data, 'assistant']];
+			console.log('result is:', data);
+			loading = false;
+
+			// Wait half a second for the text to render
+			await new Promise<void>((resolve) => setTimeout(() => resolve(), 500));
+			// Scroll to the bottom of the chat
+			chat.scroll({ top: chat.scrollHeight, behavior: 'smooth' });
+		};
+	};
 </script>
 
 <main>
@@ -73,61 +61,39 @@
 					<li>Doesn't have memory. You can not do follow up questions</li>
 					<li>Doesn't properly format Markdown</li>
 					<li>
-						It only knows things that are available in <a class="link" href="https://wiki.polkadot.network"
-							>wiki.polkadot.network</a
-						>
+						It only knows things that are available in
+						<a class="link" href="https://wiki.polkadot.network"> wiki.polkadot.network </a>
 					</li>
 				</ul>
 			</div>
 			<div class="chat-column">
 				<div class="card-body chat-container">
 					<div class="overflow-y-auto" bind:this={chat}>
-						{#each qAndA as text}
-							<Chat text={text.text} isQuestion={text.question} />
+						{#each interaction as [chat, role]}
+							<Chat text={chat} isQuestion={role === 'user'} />
 						{/each}
-						{#if streamAnswer}
+						{#if loading}
 							<ChatBubble isQuestion={false}>
-								{streamAnswer}
+								<span class="loading loading-dots loading-lg"></span>
 							</ChatBubble>
-						{/if}
-
-						{#if request}
-							{#await request}
-								<div class="chat chat-start">
-									<div class="chat-bubble">
-										<div role="status">
-											<div class="animate-pulse flex space-x-4">
-												<div class="flex-1 space-y-6 py-1">
-													<div class="space-y-3">
-														<div class="h-2 bg-slate-200 rounded" />
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>
-							{:catch error}
-								<div class="chat chat-start">
-									<div class="chat-bubble chat-bubble-error">
-										{error.message}
-									</div>
-								</div>
-							{/await}
-						{/if}
-
-						<div class="mt-8 grid grid-cols-3 gap-4">
-							<input
-								type="text"
-								bind:value={question}
-								placeholder="Type your question"
-								class="input input-bordered w-full max-w-xs col-span-2"
-								bind:this={input}
-								disabled={loading}
-							/>
-							<button class="btn" on:click={askQuestion} disabled={loading} class:loading
-								>Ask</button
+						{:else}
+							<form
+								class="card-body mt-8 grid grid-cols-3 gap-4"
+								method="POST"
+								use:enhance={handler}
 							>
-						</div>
+								<input
+									type="text"
+									minlength="10"
+									maxlength="400"
+									placeholder="What is Polkadot?"
+									name="prompt"
+									class="input input-bordered w-full max-w-xs col-span-2"
+									required
+								/>
+								<button class="btn btn-primary" type="submit" disabled={loading}>Ask</button>
+							</form>
+						{/if}
 					</div>
 				</div>
 			</div>
