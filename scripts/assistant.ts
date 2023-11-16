@@ -1,4 +1,4 @@
-import { createReadStream, writeFileSync, readFileSync } from 'fs';
+import { createReadStream, readFileSync } from 'fs';
 import OpenAi from 'openai';
 import { env } from './env.js';
 

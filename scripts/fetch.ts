@@ -5,15 +5,23 @@ import { env } from './env';
 
 const docsSource = 'https://wiki.polkadot.network/docs/';
 
-/** Removes import arguments and adds the source to the document */
-const handleMarkdownContent = (content: string): string => {
-	// Remove any line starting with a 
-	const removedImports = content.replace(/import.+".+/g, "");
+/**
+ * Removes import arguments and adds the source to the document
+ * @param {string} content Markdown content to remove non markdown text
+ * @returns {string} The parsed markdown content
+ */
+const handleMarkdownContent = (content: string) => {
+	// Remove any line starting with a
+	const removedImports = content.replace(/import.+".+/g, '');
 	const withSource = removedImports.replace(/slug: [?:../]+/, `source: ${docsSource}`);
 
 	return withSource;
 };
 
+/**
+ * Fetches the docs from GitHub
+ * @returns {Promise<string>}
+ */
 export const fetchDocs = async (): Promise<string> => {
 	const repo = {
 		owner: env.ORG,
@@ -37,6 +45,11 @@ export const fetchDocs = async (): Promise<string> => {
 		recursive: 'true'
 	});
 
+	/**
+	 *
+	 * @param {{path?:string}} param0
+	 * @returns {boolean}
+	 */
 	const docFilters = ({ path }: { path?: string }): boolean => {
 		if (!path) {
 			return false;
@@ -61,27 +74,33 @@ export const fetchDocs = async (): Promise<string> => {
 
 	mkdir('data/docs/', { recursive: true });
 
-	const filenames:{fileName:string,content:string}[] = [];
+	/**
+	 * @type {{fileName:string,content:string}[]}
+	 */
+	const filenames: { fileName: string; content: string }[] = [];
 
 	for (let i = 0; i < cleanedFiles.length; i++) {
 		const file = cleanedFiles[i];
+		/** @type {{data: {download_url:string}}} */
 		const { data } = await octokit.rest.repos.getContent({
 			...repo,
 			path: file.path as string
 		});
 		console.log(`Downloading ${file.path} -`, cleanedFiles.length - i, 'files remaining 📂');
-		// @ts-ignore: download_url exists but for some reason it is telling it does not
-		const { download_url } = data;
-		const textResponse = await axios.get<string>(download_url);
+
+		const { download_url } = data as { download_url: string };
+
+		/** @type {import("axios").AxiosResponse<string>} */
+		const textResponse = await axios.get(download_url);
 		const textData = textResponse.data;
 		const fileName = `data/docs/${file.path?.replaceAll('/', '-')}`;
 		const content = handleMarkdownContent(textData);
 		await writeFile(fileName, content);
-		filenames.push({fileName, content});
+		filenames.push({ fileName, content });
 	}
 
-	const combinedDocName = "data/combined-doc.md";
-	await writeFile(combinedDocName, `# Wiki\n\n${filenames.map(f => f.content).join("\n\n")}`);
+	const combinedDocName = 'data/combined-doc.md';
+	await writeFile(combinedDocName, `# Wiki\n\n${filenames.map((f) => f.content).join('\n\n')}`);
 
 	return combinedDocName;
 };

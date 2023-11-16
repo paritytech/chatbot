@@ -12,5 +12,5 @@ export const env = envsafe({
 	}),
 	OPENAI_API_KEY: str({
 		desc: 'Open AI API key'
-	}),
+	})
 });
