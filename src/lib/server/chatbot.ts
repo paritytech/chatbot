@@ -17,7 +17,7 @@ const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
 let embeddedQuestion;
 
-const createPrompt = (question: string, data: SourceData[]):string => {
+const createPrompt = (question: string, data: SourceData[]): string => {
 	const groupContent = data.map(
 		({ content, source }) => content + (source ? `\nSource: ${source}` : '\n')
 	);
@@ -34,9 +34,7 @@ const createPrompt = (question: string, data: SourceData[]):string => {
 };
 
 /** Finds the related information in the vector database and formats the prompt to have context */
-export const formatPromptWithData = async (
-	prompt: string
-): Promise<string> => {
+export const formatPromptWithData = async (prompt: string): Promise<string> => {
 	// Embed the prompt using embedding model
 
 	const embeddedQuestionResponse = await openai.embeddings.create({
@@ -65,4 +63,4 @@ export const formatPromptWithData = async (
 	);
 
 	return createPrompt(prompt, data);
-}
+};

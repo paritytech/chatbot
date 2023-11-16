@@ -22,7 +22,6 @@ export const askQuestion = async (
 	threadId?: string
 ): Promise<{ answer: string; threadId: string }> => {
 	const prompt = await formatPromptWithData(question);
-	console.log("Prompt is:", prompt);
 	if (threadId) {
 		await ai.beta.threads.messages.create(threadId, { content: prompt, role: 'user' });
 	} else {
