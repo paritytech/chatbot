@@ -15,6 +15,7 @@
 	let chat: HTMLElement;
 	let loading: boolean;
 	let errorMsg: string;
+	let thread: string;
 
 	// answer streamed on real time before being parsed by the markdown parser
 	let streamAnswer: string = '';
@@ -26,6 +27,9 @@
 	const handler: SubmitFunction = ({ formData }) => {
 		const query = formData.get('prompt');
 		interaction = [...interaction, [query as string, 'user']];
+		if (thread) {
+			formData.append('thread', thread);
+		}
 		loading = true;
 
 		return async ({ update, result }) => {
@@ -37,8 +41,9 @@
 				return;
 			}
 			// @ts-ignore data does exist
-			const data = result.data as string;
-			interaction = [...interaction, [data, 'assistant']];
+			const data = result.data as { answer: string; threadId: string };
+			interaction = [...interaction, [data.answer, 'assistant']];
+			thread = data.threadId;
 			console.log('result is:', data);
 			loading = false;
 
