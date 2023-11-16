@@ -1,7 +1,6 @@
 import { OPENAI_API_KEY, WEAVIATE_PROTOCOL, WEAVIATE_URL } from '$env/static/private';
 import OpenAI from 'openai';
 import weaviate from 'weaviate-ts-client';
-import systemContent from '$lib/server/chatbot-configuration.txt?raw';
 
 export const weaviateClient = weaviate.client({
 	scheme: WEAVIATE_PROTOCOL,
@@ -18,7 +17,7 @@ const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
 let embeddedQuestion;
 
-const createPrompt = (question: string, data: SourceData[]) => {
+const createPrompt = (question: string, data: SourceData[]):string => {
 	const groupContent = data.map(
 		({ content, source }) => content + (source ? `\nSource: ${source}` : '\n')
 	);
@@ -34,9 +33,10 @@ const createPrompt = (question: string, data: SourceData[]) => {
 	);
 };
 
-export const getCompletationData = async (
+/** Finds the related information in the vector database and formats the prompt to have context */
+export const formatPromptWithData = async (
 	prompt: string
-): Promise<OpenAI.Chat.ChatCompletionCreateParamsNonStreaming> => {
+): Promise<string> => {
 	// Embed the prompt using embedding model
 
 	const embeddedQuestionResponse = await openai.embeddings.create({
@@ -55,7 +55,7 @@ export const getCompletationData = async (
 		.get()
 		.withClassName('Question')
 		.withNearVector({ vector: embeddedQuestion })
-		.withLimit(5)
+		.withLimit(2)
 		.withFields('text source')
 		.do();
 
@@ -64,25 +64,5 @@ export const getCompletationData = async (
 		(q: { text: string; source: string }) => ({ content: q.text, source: q.source }) as SourceData
 	);
 
-	return {
-		model: 'gpt-4-1106-preview',
-		messages: [
-			{
-				role: 'system',
-				content: systemContent
-			},
-			{
-				role: 'user',
-				content: createPrompt(prompt, data)
-			}
-		],
-		// max_tokens: maxTokens,
-		temperature: 0 // Tweak for more random answers,
-	};
-};
-
-export const askQuestion = async (prompt: string): Promise<string> => {
-	const completion = await getCompletationData(prompt);
-	const answer = await openai.chat.completions.create(completion);
-	return answer.choices[0].message.content ?? 'Error';
-};
+	return createPrompt(prompt, data);
+}
