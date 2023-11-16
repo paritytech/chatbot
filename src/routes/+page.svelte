@@ -1,28 +1,17 @@
 <script lang="ts">
-	import axios from 'axios';
 	import Chat from '$lib/components/Chat.svelte';
-	import { tick } from 'svelte';
-	import { askQuestion as askStream } from '$lib/util/handleQueryStream';
 
-	import { highlightAll } from 'prismjs';
+	import { enhance } from '$app/forms';
 	import ChatBubble from '$lib/components/ChatBubble.svelte';
 	import type { SubmitFunction } from '@sveltejs/kit';
-	import { enhance } from '$app/forms';
+	import { highlightAllUnder } from 'prismjs';
 
 	let interaction: [string, 'user' | 'assistant'][] = [];
 
-	let qAndA: { question: boolean; text: string }[] = [];
 	let chat: HTMLElement;
 	let loading: boolean;
 	let errorMsg: string;
 	let thread: string;
-
-	// answer streamed on real time before being parsed by the markdown parser
-	let streamAnswer: string = '';
-
-	const scrollToBottom = async (node: HTMLElement) => {
-		node.scroll({ top: node.scrollHeight, behavior: 'smooth' });
-	};
 
 	const handler: SubmitFunction = ({ formData }) => {
 		const query = formData.get('prompt');
@@ -51,6 +40,7 @@
 			await new Promise<void>((resolve) => setTimeout(() => resolve(), 500));
 			// Scroll to the bottom of the chat
 			chat.scroll({ top: chat.scrollHeight, behavior: 'smooth' });
+			highlightAllUnder(chat);
 		};
 	};
 </script>
@@ -63,8 +53,6 @@
 				<p class="pt-6">Ask me anything about Polkadot</p>
 				<p>Pre alpha Proof of Concept. Expect chaos</p>
 				<ul class="list-disc">
-					<li>Doesn't have memory. You can not do follow up questions</li>
-					<li>Doesn't properly format Markdown</li>
 					<li>
 						It only knows things that are available in
 						<a class="link" href="https://wiki.polkadot.network"> wiki.polkadot.network </a>
