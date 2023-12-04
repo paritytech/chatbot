@@ -20,11 +20,11 @@ GITHUB_TOKEN=<token-with-repo-access>
 OPENAI_API_KEY=<api-key>
 ```
 
-For example, if you are creating an interactive chatbot for Substrate, you would set the following values:
+For example, if you are creating an interactive chatbot for Polkadot, you would set the following values:
 
 ```env
-REPO=substrate
-ORG=paritytech
+REPO=polkadot-wiki
+ORG=w3f
 ```
 
 You also need to include your OpenAI API key. You can get one by signing up for an account at [OpenAI](https://openai.com/). You also require a **GitHub token** with repo access. You can create one by following the instructions [here](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token). Add them to your `.env` file with the following keys:
@@ -34,13 +34,16 @@ GITHUB_TOKEN=
 OPENAI_API_KEY=
 ```
 
-You also need to use Weaviate. For local development, we have a `docker-compose` image. If you have a deployed instance, you'll need to update the values with the ones from that instance.
-
 Once that is all completed, you can run the following command to download all the necessary files and generate the embeddings:
 
 ```bash
 npm run setup
 ```
+
+This will fetch all the docs from GitHub, generate a combined file and create an [Assistant](https://platform.openai.com/docs/assistants/overview).
+This assistant will be feed the combined file(s) that will use as its knowledge surce.
+
+Once the process is done, an assistant ID will be produced. _Store this ID under the variable `ASSISTANT_ID`_.
 
 ## Run server
 

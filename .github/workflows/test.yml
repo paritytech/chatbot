@@ -8,8 +8,7 @@ env:
   ORG: 'org'
   GITHUB_TOKEN: 'your-repo-token'
   OPENAI_API_KEY: 'you-open-ai-key'
-  WEAVIATE_URL: 'localhost:8080'
-  WEAVIATE_PROTOCOL: 'https'
+  ASSISTANT_ID: 'abc'
 
 jobs:
   test:

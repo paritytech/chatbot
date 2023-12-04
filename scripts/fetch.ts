@@ -3,7 +3,25 @@ import axios from 'axios';
 import { mkdir, writeFile } from 'fs/promises';
 import { env } from './env';
 
-export const fetchDocs = async () => {
+const docsSource = 'https://wiki.polkadot.network/docs/';
+
+/**
+ * Removes import arguments and adds the source to the document
+ * @param content Markdown content to remove non markdown text
+ * @returns The parsed markdown content
+ */
+const handleMarkdownContent = (content: string) => {
+	// Remove any line starting with a
+	const removedImports = content.replace(/import.+".+/g, '');
+	const withSource = removedImports.replace(/slug: [?:../]+/, `source: ${docsSource}`);
+
+	return withSource;
+};
+
+/**
+ * Fetches the docs from GitHub
+ */
+export const fetchDocs = async (): Promise<string> => {
 	const repo = {
 		owner: env.ORG,
 		repo: env.REPO
@@ -50,6 +68,8 @@ export const fetchDocs = async () => {
 
 	mkdir('data/docs/', { recursive: true });
 
+	const filenames: { fileName: string; content: string }[] = [];
+
 	for (let i = 0; i < cleanedFiles.length; i++) {
 		const file = cleanedFiles[i];
 		const { data } = await octokit.rest.repos.getContent({
@@ -57,10 +77,20 @@ export const fetchDocs = async () => {
 			path: file.path as string
 		});
 		console.log(`Downloading ${file.path} -`, cleanedFiles.length - i, 'files remaining 📂');
-		// @ts-ignore: download_url exists but for some reason it is telling it does not
-		const { download_url } = data;
-		const textResponse = await axios.get<string>(download_url);
+
+		const { download_url } = data as { download_url: string };
+
+		/** @type {import("axios").AxiosResponse<string>} */
+		const textResponse = await axios.get(download_url);
 		const textData = textResponse.data;
-		await writeFile(`data/docs/${file.path?.replaceAll('/', '-')}`, textData);
+		const fileName = `data/docs/${file.path?.replaceAll('/', '-')}`;
+		const content = handleMarkdownContent(textData);
+		await writeFile(fileName, content);
+		filenames.push({ fileName, content });
 	}
+
+	const combinedDocName = 'data/combined-doc.md';
+	await writeFile(combinedDocName, `# Wiki\n\n${filenames.map((f) => f.content).join('\n\n')}`);
+
+	return combinedDocName;
 };

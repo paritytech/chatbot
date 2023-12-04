@@ -12,13 +12,5 @@ export const env = envsafe({
 	}),
 	OPENAI_API_KEY: str({
 		desc: 'Open AI API key'
-	}),
-	WEAVIATE_URL: str({
-		devDefault: 'localhost:8080',
-		desc: 'Location of weaviate'
-	}),
-	WEAVIATE_PROTOCOL: str({
-		devDefault: 'http',
-		desc: 'Protocol of weaviate (usually http or https)'
 	})
 });
