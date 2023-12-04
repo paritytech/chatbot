@@ -7,7 +7,7 @@ const openai = new OpenAi({ apiKey: env.OPENAI_API_KEY });
 /**
  * Uploads an array of documents to Open AI and returns their file IDs
  * @param {string[]} documents Array with location of docs
- * @returns {Promise<void>}
+ * @returns {Promise<import("openai").OpenAi.Files.FileObject[]>}
  */
 const uploadDocuments = async (documents: string[]): Promise<OpenAi.Files.FileObject[]> => {
 	if (documents.length >= 20) {
