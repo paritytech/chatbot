@@ -44,11 +44,10 @@ export const askQuestion = async (
 	const message = await ai.beta.threads.messages.list(run.thread_id);
 
 	const [content] = message.data[0].content;
-	if (content.type !== "text") {
+	if (content.type !== 'text') {
 		console.error("System didn't produce a text", content);
-		throw new Error("Wrong content type");
+		throw new Error('Wrong content type');
 	}
-	
+
 	return { answer: content.text.value, threadId };
-}
 };
