@@ -7,8 +7,8 @@ const docsSource = 'https://wiki.polkadot.network/docs/';
 
 /**
  * Removes import arguments and adds the source to the document
- * @param {string} content Markdown content to remove non markdown text
- * @returns {string} The parsed markdown content
+ * @param content Markdown content to remove non markdown text
+ * @returns The parsed markdown content
  */
 const handleMarkdownContent = (content: string) => {
 	// Remove any line starting with a
@@ -20,7 +20,6 @@ const handleMarkdownContent = (content: string) => {
 
 /**
  * Fetches the docs from GitHub
- * @returns {Promise<string>}
  */
 export const fetchDocs = async (): Promise<string> => {
 	const repo = {
@@ -45,11 +44,6 @@ export const fetchDocs = async (): Promise<string> => {
 		recursive: 'true'
 	});
 
-	/**
-	 *
-	 * @param {{path?:string}} param0
-	 * @returns {boolean}
-	 */
 	const docFilters = ({ path }: { path?: string }): boolean => {
 		if (!path) {
 			return false;
@@ -74,14 +68,10 @@ export const fetchDocs = async (): Promise<string> => {
 
 	mkdir('data/docs/', { recursive: true });
 
-	/**
-	 * @type {{fileName:string,content:string}[]}
-	 */
 	const filenames: { fileName: string; content: string }[] = [];
 
 	for (let i = 0; i < cleanedFiles.length; i++) {
 		const file = cleanedFiles[i];
-		/** @type {{data: {download_url:string}}} */
 		const { data } = await octokit.rest.repos.getContent({
 			...repo,
 			path: file.path as string
