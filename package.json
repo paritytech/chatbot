@@ -55,7 +55,6 @@
 		"marked": "^9.1.1",
 		"ml-distance": "^4.0.1",
 		"openai": "^4.17.3",
-		"prismjs": "^1.29.0",
-		"weaviate-ts-client": "^1.5.0"
+		"prismjs": "^1.29.0"
 	}
 }

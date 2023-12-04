@@ -1,6 +1,5 @@
 import { ASSISTANT_ID, OPENAI_API_KEY } from '$env/static/private';
 import OpenAI from 'openai';
-import { formatPromptWithData } from './chatbot';
 
 const ai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
@@ -21,11 +20,10 @@ export const askQuestion = async (
 	question: string,
 	threadId?: string
 ): Promise<{ answer: string; threadId: string }> => {
-	const prompt = await formatPromptWithData(question);
 	if (threadId) {
-		await ai.beta.threads.messages.create(threadId, { content: prompt, role: 'user' });
+		await ai.beta.threads.messages.create(threadId, { content: question, role: 'user' });
 	} else {
-		threadId = await createThread(prompt);
+		threadId = await createThread(question);
 	}
 	console.log('Working on question', question);
 	let run = await ai.beta.threads.runs.create(threadId, { assistant_id: ASSISTANT_ID });
