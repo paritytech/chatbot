@@ -1,5 +1,5 @@
 import { createAssistant } from './assistant.js';
-import { fetchDocs } from './fetch.js';
+import { fetchDocs } from './fetchGitHubDocs.js';
 import { fetchQuestions } from './fetchStackExchange.js';
 
 const runSetup = async () => {

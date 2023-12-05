@@ -1,7 +1,7 @@
 import axios from "axios";
-import { mkdirSync } from "fs";
+import { existsSync, mkdirSync } from "fs";
 
-import { writeFile } from "fs/promises";
+import { readFile, writeFile } from "fs/promises";
 
 interface QuestionWithBody {
     is_answered: boolean;
@@ -78,7 +78,7 @@ export const fetchQuestions = async (): Promise<string> => {
     params.append('order', 'desc');
     params.append('sort', 'votes');
     params.append('site', site);
-    params.append('filter', '!1ZFzxYL36KQNcy0oOKFWC)yuuGWzdzWPZ');
+    params.append('filter', '!1ZFzxYL2ELUKqhj_*4sTn2BvPAtLgsEA.');
 
     const questions = await axiosGet<{ items: QuestionWithBody[] }>(url, params);
 
@@ -93,10 +93,25 @@ export const fetchQuestions = async (): Promise<string> => {
     const answers: StackExchangeInfo[] = [];
 
     for (const question of questions.items.filter(q => q.is_answered)) {
-        if (!question.accepted_answer_id) {
-            console.log("Skipping", question.question_id, question.title, "because it does not have an accepted answer");
+        // Skip undefined questions
+        if (!question.question_id) {
             continue;
         }
+
+        if (!question.accepted_answer_id) {
+            console.log("Skipping #%s '%s' because it does not have an accepted answer", question.question_id, question.title);
+            continue;
+        }
+
+        const fileName = `data/se/${question.question_id}.json`;
+
+        if (existsSync(fileName)) {
+            console.log(`Found back up for #${question.question_id}. Using file in disk`);
+            const file = await readFile(fileName, "utf-8");
+            answers.push(JSON.parse(file) as StackExchangeInfo);
+            continue;
+        }
+
         const url = "https://api.stackexchange.com/2.3/answers/" + question.accepted_answer_id;
         console.log("Getting answer from: '%s'", question.title);
         const answer = await axiosGet<{ items: Answer[] }>(url, answerParams);
@@ -110,10 +125,9 @@ export const fetchQuestions = async (): Promise<string> => {
             url: question.link,
             answer_url: `https://${site}.com/a/${question.accepted_answer_id}`
         }
-        await writeFile(`data/se/${question.question_id}.json`, JSON.stringify(pair, null, 2));
+        await writeFile(fileName, JSON.stringify(pair, null, 2));
         answers.push(pair);
     }
-    console.log(questions.items.map(q => q.score));
 
     const combination = answers.map(answer => `# ${answer.title}
 
@@ -123,11 +137,9 @@ ${answer.body}
 
 ## Answer
 
-${answer.answer}
+Answer source: ${answer.answer_url}
 
-## Source
-
-${answer.answer_url}`).join("\n\n---\n\n");
+${answer.answer}`).join("\n\n---\n\n");
 
     const combinedFile = "data/stackExchangeCombinedDoc.md";
 
