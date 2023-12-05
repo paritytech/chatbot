@@ -52,10 +52,15 @@
 				<h1 class="text-5xl font-bold">Polkadot! Chatbot</h1>
 				<p class="pt-6">Ask me anything about Polkadot</p>
 				<p>Pre alpha Proof of Concept. Expect chaos</p>
+				<p>It only knows things that are available in</p>
 				<ul class="list-disc">
 					<li>
-						It only knows things that are available in
 						<a class="link" href="https://wiki.polkadot.network"> wiki.polkadot.network </a>
+					</li>
+					<li>
+						<a class="link" href="https://substrate.stackexchange.com/">
+							substrate.stackexchange
+						</a>
 					</li>
 				</ul>
 			</div>
